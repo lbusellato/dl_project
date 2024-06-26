@@ -1,7 +1,9 @@
 import h5py
 import numpy as np
 import random
+import torch
 
+from dl_project.utils.custom_typing import Shapes3DData
 from os import mkdir
 from os.path import exists, dirname, abspath, join
 from torch.utils.data import Dataset
@@ -28,8 +30,26 @@ class Shapes3D(Dataset):
         if not exists(self.dataset_path):
             raise FileNotFoundError('Download the dataset from https://storage.cloud.google.com/3d-shapes/3dshapes.h5 and place it in the cache folder.')
                 
+        # Lookup values for converting between features and labels        
+        self.hues = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+        self.scales = [0.75, 0.82142857, 0.89285714, 0.96428571, 1.03571429, 1.10714286, 1.17857143, 1.25]
+        self.shapes = [0, 1, 2, 3]
+        self.orientations = [-30, -25.71428571, -21.42857143, -17.14285714, -12.85714286,
+                            -8.57142857,  -4.28571429,   0,           4.28571429,   8.57142857,
+                            12.85714286,  17.14285714,  21.42857143,  25.71428571,  30]
+
         # Generate the new dataset as described in the paper, if not done already
         self.images, self.labels, self.pairs = self.load_data()
+
+    def convert_features_to_labels(self, features):
+        def find_index_of_closest(arr, val):
+            return np.argmin(np.abs(np.array(arr)-val))
+        return np.stack([[find_index_of_closest(self.hues, f[0]),
+                          find_index_of_closest(self.hues, f[1]),
+                          find_index_of_closest(self.hues, f[2]),
+                          find_index_of_closest(self.scales, f[3]),
+                          find_index_of_closest(self.shapes, f[4]),
+                          find_index_of_closest(self.orientations, f[5])] for f in features])
 
     def load_data(self):
 
@@ -44,6 +64,8 @@ class Shapes3D(Dataset):
                         indices = np.random.choice(len(images), int(len(images) * self.subsample), replace=False)
                         images = images[indices]
                         labels = labels[indices]
+                    # Convert from raw values to labels
+                    labels = self.convert_features_to_labels(labels)
                     np.save(join(self.cache_folder, 'images.npy'), images)
                     np.save(join(self.cache_folder, 'labels.npy'), labels)
             else:
@@ -72,6 +94,8 @@ class Shapes3D(Dataset):
             images = np.load(join(self.cache_folder, 'images.npy'))
             labels = np.load(join(self.cache_folder, 'labels.npy'))
             pairs = np.load(join(self.cache_folder, 'pairs.npy'))
+        labels = self.convert_features_to_labels(labels)
+        np.save(join(self.cache_folder, 'labels.npy'), labels)
         return images, labels, pairs
 
     def __len__(self):
@@ -82,5 +106,17 @@ class Shapes3D(Dataset):
         image1, image2 = self.images[idx1], self.images[idx2]
         label1 = self.labels[idx1]
         label2 = self.labels[idx2]
-        return (image1, label1), (image2, label2)
+        return Shapes3DData(
+            x=torch.Tensor(image1).permute(2,0,1),
+            y=torch.Tensor(image2).permute(2,0,1),
+            x_floor_hue_label=torch.tensor(label1[0], dtype=torch.float32),
+            x_wall_hue_label=torch.tensor(label1[1], dtype=torch.float32),
+            x_object_hue_label=torch.tensor(label1[2], dtype=torch.float32),
+            y_floor_hue_label=torch.tensor(label2[0], dtype=torch.float32),
+            y_wall_hue_label=torch.tensor(label2[1], dtype=torch.float32),
+            y_object_hue_label=torch.tensor(label2[2], dtype=torch.float32),
+            scale_label=torch.tensor(label1[3], dtype=torch.float32),
+            shape_label=torch.tensor(label1[4], dtype=torch.float32),
+            orientation_label=torch.tensor(label1[5], dtype=torch.float32),
+        )
     

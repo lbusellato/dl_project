@@ -13,11 +13,13 @@ ROOT = dirname(dirname(dirname(abspath(__file__))))
 class Shapes3D(Dataset):
     
     def __init__(self,
-                 subsample = 0.2,
-                 max_pairs = 10) -> None:
+                 train = 0.7,
+                 max_pairs = 10,
+                 mode='train') -> None:
         super().__init__()
         
-        self.subsample = subsample
+        self.mode = mode
+        self.train = train
         self.max_pairs = max_pairs
 
         # Create the folder for cache storage
@@ -53,24 +55,27 @@ class Shapes3D(Dataset):
 
     def load_data(self):
 
-        if not exists(join(self.cache_folder, 'pairs.npy')):      
+        if self.mode=='train' and not exists(join(self.cache_folder, 'train_pairs.npy')) or \
+            self.mode=='test' and not exists(join(self.cache_folder, 'test_pairs.npy')):      
             # Convert the data to numpy arrays if they are not stored in the cache
-            if not exists(join(self.cache_folder, 'images.npy')):
+            if self.mode=='train' and not exists(join(self.cache_folder, 'train_images.npy')) or \
+                self.mode=='test' and not exists(join(self.cache_folder, 'test_images.npy')):
                 with h5py.File(self.dataset_path, 'r') as f:
                     images = np.array(f['images'])
                     labels = np.array(f['labels'])
                     # Subsample the dataset
-                    if self.subsample < 1.0:
-                        indices = np.random.choice(len(images), int(len(images) * self.subsample), replace=False)
-                        images = images[indices]
-                        labels = labels[indices]
+                    indices = np.random.choice(len(images), int(len(images) * self.train), replace=False)
+                    if self.mode == 'test':
+                        indices = np.setdiff1d(np.arange(len(images)), indices)
+                    images = images[indices]
+                    labels = labels[indices]
                     # Convert from raw values to labels
                     labels = self.convert_features_to_labels(labels)
-                    np.save(join(self.cache_folder, 'images.npy'), images)
-                    np.save(join(self.cache_folder, 'labels.npy'), labels)
+                    np.save(join(self.cache_folder, self.mode + '_images.npy'), images)
+                    np.save(join(self.cache_folder, self.mode + '_labels.npy'), labels)
             else:
-                images = np.load(join(self.cache_folder, 'images.npy'))
-                labels = np.load(join(self.cache_folder, 'labels.npy'))
+                images = np.load(join(self.cache_folder, self.mode + '_images.npy'))
+                labels = np.load(join(self.cache_folder, self.mode + '_labels.npy'))
             
             # Create a list of indexes, by putting them together by scale, shape and orientation (columns 3,4,5)
             indices_by_attributes = {}
@@ -89,13 +94,11 @@ class Shapes3D(Dataset):
                     idx1, idx2 = random.sample(indices, 2)
                     if (idx1, idx2) not in pairs: pairs.append((idx1, idx2))
             
-            np.save(join(self.cache_folder, 'pairs.npy'), pairs)
+            np.save(join(self.cache_folder, self.mode + '_pairs.npy'), pairs)
         else:
-            images = np.load(join(self.cache_folder, 'images.npy'))
-            labels = np.load(join(self.cache_folder, 'labels.npy'))
-            pairs = np.load(join(self.cache_folder, 'pairs.npy'))
-        labels = self.convert_features_to_labels(labels)
-        np.save(join(self.cache_folder, 'labels.npy'), labels)
+            images = np.load(join(self.cache_folder, self.mode + '_images.npy'))
+            labels = np.load(join(self.cache_folder, self.mode + '_labels.npy'))
+            pairs = np.load(join(self.cache_folder, self.mode + '_pairs.npy'))
         return images, labels, pairs
 
     def __len__(self):

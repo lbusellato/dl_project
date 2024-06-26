@@ -123,9 +123,15 @@ class EDIMLoss(nn.Module):
     def compute_classif_loss(
         self,
         classif_outputs: ClassifierOutputs,
-        digit_labels: torch.Tensor,
-        color_bg_labels: torch.Tensor,
-        color_fg_labels: torch.Tensor,
+        x_floor_hue_labels: torch.Tensor,
+        x_wall_hue_labels: torch.Tensor,
+        x_object_hue_labels: torch.Tensor,
+        y_floor_hue_labels: torch.Tensor,
+        y_wall_hue_labels: torch.Tensor,
+        y_object_hue_labels: torch.Tensor,
+        scale_labels: torch.Tensor,
+        shape_labels: torch.Tensor,
+        orientation_labels: torch.Tensor,
     ) -> ClassifLosses:
         """Compute classifiers losses. The accuracy of the classifiers allow to quantify the representations level of disentanglement.
 
@@ -139,35 +145,84 @@ class EDIMLoss(nn.Module):
             ClassifLosses: Classifiers losses
         """
 
-        digit_bg_classif_loss, digit_bg_accuracy = self.classif_loss(
-            y_pred=classif_outputs.digit_bg_logits,
-            target=digit_labels,
+        # Get classification error
+
+        x_floor_hue_classif_loss, x_floor_hue_accuracy = self.classif_loss(
+            y_pred=classif_outputs.x_floor_hue_logits , target=x_floor_hue_labels
         )
-        digit_fg_classif_loss, digit_fg_accuracy = self.classif_loss(
-            y_pred=classif_outputs.digit_fg_logits, target=digit_labels
+        x_wall_hue_classif_loss, x_wall_hue_accuracy = self.classif_loss(
+            y_pred=classif_outputs.x_wall_hue_logits , target=x_wall_hue_labels
         )
-        color_bg_classif_loss, color_bg_accuracy = self.classif_loss(
-            y_pred=classif_outputs.color_bg_logits,
-            target=color_bg_labels,
+        x_object_hue_classif_loss, x_object_hue_accuracy = self.classif_loss(
+            y_pred=classif_outputs.x_object_hue_logits , target=x_object_hue_labels
         )
-        color_fg_classif_loss, color_fg_accuracy = self.classif_loss(
-            y_pred=classif_outputs.color_fg_logits, target=color_fg_labels
+        y_floor_hue_classif_loss, y_floor_hue_accuracy = self.classif_loss(
+            y_pred=classif_outputs.y_floor_hue_logits , target=y_floor_hue_labels
         )
+        y_wall_hue_classif_loss, y_wall_hue_accuracy = self.classif_loss(
+            y_pred=classif_outputs.y_wall_hue_logits , target=y_wall_hue_labels
+        )
+        y_object_hue_classif_loss, y_object_hue_accuracy = self.classif_loss(
+            y_pred=classif_outputs.y_object_hue_logits , target=y_object_hue_labels
+        )
+        x_scale_classif_loss, x_scale_accuracy = self.classif_loss(
+            y_pred=classif_outputs.x_scale_logits , target=scale_labels
+        )
+        x_shape_classif_loss, x_shape_accuracy = self.classif_loss(
+            y_pred=classif_outputs.x_shape_logits , target=shape_labels
+        )
+        x_orientation_classif_loss, x_orientation_accuracy = self.classif_loss(
+            y_pred=classif_outputs.x_orientation_logits , target=orientation_labels
+        )
+        y_scale_classif_loss, y_scale_accuracy = self.classif_loss(
+            y_pred=classif_outputs.y_scale_logits , target=scale_labels
+        )
+        y_shape_classif_loss, y_shape_accuracy = self.classif_loss(
+            y_pred=classif_outputs.y_shape_logits , target=shape_labels
+        )
+        y_orientation_classif_loss, y_orientation_accuracy = self.classif_loss(
+            y_pred=classif_outputs.y_orientation_logits , target=orientation_labels
+        )
+
         classif_loss = (
-            digit_bg_classif_loss
-            + digit_fg_classif_loss
-            + color_bg_classif_loss
-            + color_fg_classif_loss
+            x_floor_hue_classif_loss
+            + x_wall_hue_classif_loss
+            + x_object_hue_classif_loss
+            + y_floor_hue_classif_loss
+            + y_wall_hue_classif_loss
+            + y_object_hue_classif_loss
+            + x_scale_classif_loss
+            + x_shape_classif_loss
+            + x_orientation_classif_loss
+            + y_scale_classif_loss
+            + y_shape_classif_loss
+            + y_orientation_classif_loss
         )
 
         return ClassifLosses(
             classif_loss=classif_loss,
-            digit_bg_classif_loss=digit_bg_classif_loss,
-            digit_fg_classif_loss=digit_fg_classif_loss,
-            color_bg_classif_loss=color_bg_classif_loss,
-            color_fg_classif_loss=color_fg_classif_loss,
-            digit_bg_accuracy=digit_bg_accuracy,
-            digit_fg_accuracy=digit_fg_accuracy,
-            color_bg_accuracy=color_bg_accuracy,
-            color_fg_accuracy=color_fg_accuracy,
+            x_floor_hue_classif_loss=x_floor_hue_classif_loss,
+            x_wall_hue_classif_loss=x_wall_hue_classif_loss,
+            x_object_hue_classif_loss=x_object_hue_classif_loss,
+            y_floor_hue_classif_loss=y_floor_hue_classif_loss,
+            y_wall_hue_classif_loss=y_wall_hue_classif_loss,
+            y_object_hue_classif_loss=y_object_hue_classif_loss,
+            x_scale_classif_loss=x_scale_classif_loss,
+            x_shape_classif_loss=x_shape_classif_loss,
+            x_orientation_classif_loss=x_orientation_classif_loss,
+            y_scale_classif_loss=y_scale_classif_loss,
+            y_shape_classif_loss=y_shape_classif_loss,
+            y_orientation_classif_loss=y_orientation_classif_loss,
+            x_floor_hue_accuracy=x_floor_hue_accuracy,
+            x_wall_hue_accuracy=x_wall_hue_accuracy,
+            x_object_hue_accuracy=x_object_hue_accuracy,
+            y_floor_hue_accuracy=y_floor_hue_accuracy,
+            y_wall_hue_accuracy=y_wall_hue_accuracy,
+            y_object_hue_accuracy=y_object_hue_accuracy,
+            x_scale_accuracy=x_scale_accuracy,
+            x_shape_accuracy=x_shape_accuracy,
+            x_orientation_accuracy=x_orientation_accuracy,
+            y_scale_accuracy=y_scale_accuracy,
+            y_shape_accuracy=y_shape_accuracy,
+            y_orientation_accuracy=y_orientation_accuracy,
         )

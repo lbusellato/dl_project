@@ -6,6 +6,5 @@ This repository contains the code for the final project for the Deep Learning co
 
 The project was run on a commercial-grade laptop with an Intel i7-7500@2.70GHz CPU and an NVIDIA 940MX GPU with CUDA version 11.4.
 
-The Shapes3D dataset needs to be downloaded and placed in a "cache" folder at the root of the repo. Usage is shown in main.py
-
+The Shapes3D dataset needs to be downloaded and placed in a "cache" folder at the root of the repo. Training of the framework is shown in training.py Testing is shown in testing.py.
 The report for the project is available in [Overleaf](TBD)

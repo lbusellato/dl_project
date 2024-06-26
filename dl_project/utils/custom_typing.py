@@ -105,14 +105,30 @@ class GenLosses(NamedTuple):
 
 class ClassifLosses(NamedTuple):
     classif_loss: torch.Tensor
-    digit_bg_classif_loss: torch.Tensor
-    digit_fg_classif_loss: torch.Tensor
-    color_bg_classif_loss: torch.Tensor
-    color_fg_classif_loss: torch.Tensor
-    digit_bg_accuracy: torch.Tensor
-    digit_fg_accuracy: torch.Tensor
-    color_bg_accuracy: torch.Tensor
-    color_fg_accuracy: torch.Tensor
+    x_floor_hue_classif_loss: torch.Tensor
+    x_wall_hue_classif_loss: torch.Tensor
+    x_object_hue_classif_loss: torch.Tensor
+    y_floor_hue_classif_loss: torch.Tensor
+    y_wall_hue_classif_loss: torch.Tensor
+    y_object_hue_classif_loss: torch.Tensor
+    x_scale_classif_loss: torch.Tensor
+    x_shape_classif_loss: torch.Tensor
+    x_orientation_classif_loss: torch.Tensor
+    y_scale_classif_loss: torch.Tensor
+    y_shape_classif_loss: torch.Tensor
+    y_orientation_classif_loss: torch.Tensor
+    x_floor_hue_accuracy: torch.Tensor
+    x_wall_hue_accuracy: torch.Tensor
+    x_object_hue_accuracy: torch.Tensor
+    y_floor_hue_accuracy: torch.Tensor
+    y_wall_hue_accuracy: torch.Tensor
+    y_object_hue_accuracy: torch.Tensor
+    x_scale_accuracy: torch.Tensor
+    x_shape_accuracy: torch.Tensor
+    x_orientation_accuracy: torch.Tensor
+    y_scale_accuracy: torch.Tensor
+    y_shape_accuracy: torch.Tensor
+    y_orientation_accuracy: torch.Tensor
 
 
 class DiscrLosses(NamedTuple):
@@ -136,7 +152,16 @@ class DiscriminatorOutputs(NamedTuple):
 
 
 class ClassifierOutputs(NamedTuple):
-    digit_bg_logits: torch.Tensor
-    digit_fg_logits: torch.Tensor
-    color_bg_logits: torch.Tensor
-    color_fg_logits: torch.Tensor
+    x_floor_hue_logits: torch.Tensor
+    x_wall_hue_logits: torch.Tensor
+    x_object_hue_logits: torch.Tensor
+    y_floor_hue_logits: torch.Tensor
+    y_wall_hue_logits: torch.Tensor
+    y_object_hue_logits: torch.Tensor
+    x_scale_logits: torch.Tensor
+    x_shape_logits: torch.Tensor
+    x_orientation_logits: torch.Tensor
+    y_scale_logits: torch.Tensor
+    y_shape_logits: torch.Tensor
+    y_orientation_logits: torch.Tensor
+

@@ -89,18 +89,43 @@ class EDIMTrainer:
             model.discriminator_y.parameters(), lr=learning_rate
         )
 
-        self.optimizer_digit_bg_classifier = optim.Adam(
-            model.digit_bg_classifier.parameters(), lr=learning_rate
+        self.x_optimizer_floor_hue_classifier = optim.Adam(
+            model.x_floor_hue_classifier.parameters(), lr=learning_rate
         )
-        self.optimizer_digit_fg_classifier = optim.Adam(
-            model.digit_fg_classifier.parameters(), lr=learning_rate
+        self.x_optimizer_wall_hue_classifier = optim.Adam(
+            model.x_wall_hue_classifier.parameters(), lr=learning_rate
         )
-        self.optimizer_bg_classifier = optim.Adam(
-            model.color_bg_classifier.parameters(), lr=learning_rate
+        self.x_optimizer_object_hue_classifier = optim.Adam(
+            model.x_object_hue_classifier.parameters(), lr=learning_rate
         )
-        self.optimizer_fg_classifier = optim.Adam(
-            model.color_fg_classifier.parameters(), lr=learning_rate
+        self.y_optimizer_floor_hue_classifier = optim.Adam(
+            model.y_floor_hue_classifier.parameters(), lr=learning_rate
         )
+        self.y_optimizer_wall_hue_classifier = optim.Adam(
+            model.y_wall_hue_classifier.parameters(), lr=learning_rate
+        )
+        self.y_optimizer_object_hue_classifier = optim.Adam(
+            model.y_object_hue_classifier.parameters(), lr=learning_rate
+        )
+        self.x_optimizer_scale_classifier = optim.Adam(
+            model.x_scale_classifier.parameters(), lr=learning_rate
+        )
+        self.x_optimizer_shape_classifier = optim.Adam(
+            model.x_shape_classifier.parameters(), lr=learning_rate
+        )
+        self.x_optimizer_orientation_classifier = optim.Adam(
+            model.x_orientation_classifier.parameters(), lr=learning_rate
+        )
+        self.y_optimizer_scale_classifier = optim.Adam(
+            model.y_scale_classifier.parameters(), lr=learning_rate
+        )
+        self.y_optimizer_shape_classifier = optim.Adam(
+            model.y_shape_classifier.parameters(), lr=learning_rate
+        )
+        self.y_optimizer_orientation_classifier = optim.Adam(
+            model.y_orientation_classifier.parameters(), lr=learning_rate
+        )
+
 
     def update_generator(self, edim_outputs: EDIMOutputs) -> GenLosses:
         """Compute the generator gradient and make an optimisation step
@@ -160,36 +185,70 @@ class EDIMTrainer:
     def update_classifier(
         self,
         classif_outputs: ClassifierOutputs,
-        digit_labels: torch.Tensor,
-        color_bg_labels: torch.Tensor,
-        color_fg_labels: torch.Tensor,
+        x_floor_hue_labels: torch.Tensor,
+        x_wall_hue_labels: torch.Tensor,
+        x_object_hue_labels: torch.Tensor,
+        y_floor_hue_labels: torch.Tensor,
+        y_wall_hue_labels: torch.Tensor,
+        y_object_hue_labels: torch.Tensor,
+        scale_labels: torch.Tensor,
+        shape_labels: torch.Tensor,
+        orientation_labels: torch.Tensor,
     ) -> ClassifLosses:
         """Update classifier on generated exclusive reprensentation
 
         Args:
             classif_outputs (ClassifierOutputs): Classifier ouputs probabilities
-            digit_labels (torch.Tensor): Label of the digit
-            color_bg_labels (torch.Tensor): Background color label
-            color_fg_labels (torch.Tensor): Foreground color label
+            x_floor_hue_labels (torch.Tensor): Label of the floor's color for image X
+            x_wall_hue_labels (torch.Tensor): Label of the wall's color for image X
+            x_object_hue_labels (torch.Tensor): Label of the object's color for image X
+            y_floor_hue_labels (torch.Tensor): Label of the floor's color for image Y
+            y_wall_hue_labels (torch.Tensor): Label of the wall's color for image Y
+            y_object_hue_labels (torch.Tensor): Label of the object's color for image Y
+            scale_labels (torch.Tensor): Label of the object's scale
+            shape_labels (torch.Tensor): Label of the object's shape
+            orientation_labels (torch.Tensor): Label of the object's orientation
 
         Returns:
             ClassifLosses: Classifiers losses
         """
-        self.optimizer_digit_bg_classifier.zero_grad()
-        self.optimizer_digit_fg_classifier.zero_grad()
-        self.optimizer_bg_classifier.zero_grad()
-        self.optimizer_fg_classifier.zero_grad()
+        self.x_optimizer_floor_hue_classifier.zero_grad()
+        self.x_optimizer_wall_hue_classifier.zero_grad()
+        self.x_optimizer_object_hue_classifier.zero_grad()
+        self.y_optimizer_floor_hue_classifier.zero_grad()
+        self.y_optimizer_wall_hue_classifier.zero_grad()
+        self.y_optimizer_object_hue_classifier.zero_grad()
+        self.x_optimizer_scale_classifier.zero_grad()
+        self.x_optimizer_shape_classifier.zero_grad()
+        self.x_optimizer_orientation_classifier.zero_grad()
+        self.y_optimizer_scale_classifier.zero_grad()
+        self.y_optimizer_shape_classifier.zero_grad()
+        self.y_optimizer_orientation_classifier.zero_grad()
         losses = self.loss.compute_classif_loss(
             classif_outputs=classif_outputs,
-            digit_labels=digit_labels,
-            color_bg_labels=color_bg_labels,
-            color_fg_labels=color_fg_labels,
+            x_floor_hue_labels=x_floor_hue_labels,
+            x_wall_hue_labels=x_wall_hue_labels,
+            x_object_hue_labels=x_object_hue_labels,
+            y_floor_hue_labels=y_floor_hue_labels,
+            y_wall_hue_labels=y_wall_hue_labels,
+            y_object_hue_labels=y_object_hue_labels,
+            scale_labels=scale_labels,
+            shape_labels=shape_labels,
+            orientation_labels=orientation_labels,
         )
         losses.classif_loss.backward()
-        self.optimizer_digit_bg_classifier.step()
-        self.optimizer_digit_fg_classifier.step()
-        self.optimizer_bg_classifier.step()
-        self.optimizer_fg_classifier.step()
+        self.x_optimizer_floor_hue_classifier.step()
+        self.x_optimizer_wall_hue_classifier.step()
+        self.x_optimizer_object_hue_classifier.step()
+        self.y_optimizer_floor_hue_classifier.step()
+        self.y_optimizer_wall_hue_classifier.step()
+        self.y_optimizer_object_hue_classifier.step()
+        self.x_optimizer_scale_classifier.step()
+        self.x_optimizer_shape_classifier.step()
+        self.x_optimizer_orientation_classifier.step()
+        self.y_optimizer_scale_classifier.step()
+        self.y_optimizer_shape_classifier.step()
+        self.y_optimizer_orientation_classifier.step()
         return losses
 
     def train(self, epochs: int, xp_name: str = "test"):
@@ -211,7 +270,7 @@ class EDIMTrainer:
                 for idx, train_batch in enumerate(self.train_dataloader):
                     sample = train_batch
                     edim_outputs = self.model.forward_generator(
-                        x=sample.bg.to(self.device), y=sample.fg.to(self.device)
+                        x=sample.x.to(self.device), y=sample.y.to(self.device)
                     )
                     gen_losses = self.update_generator(edim_outputs=edim_outputs)
 
@@ -227,9 +286,15 @@ class EDIMTrainer:
                     )
                     classif_losses = self.update_classifier(
                         classif_outputs=classif_outputs,
-                        digit_labels=sample.digit_label.to(self.device),
-                        color_bg_labels=sample.bg_label.to(self.device),
-                        color_fg_labels=sample.fg_label.to(self.device),
+                        x_floor_hue_labels=sample.x_floor_hue_label.to(self.device),
+                        x_wall_hue_labels=sample.x_wall_hue_label.to(self.device),
+                        x_object_hue_labels=sample.x_object_hue_label.to(self.device),
+                        y_floor_hue_labels=sample.y_floor_hue_label.to(self.device),
+                        y_wall_hue_labels=sample.y_wall_hue_label.to(self.device),
+                        y_object_hue_labels=sample.y_object_hue_label.to(self.device),
+                        scale_labels=sample.scale_label.to(self.device),
+                        shape_labels=sample.shape_label.to(self.device),
+                        orientation_labels=sample.orientation_label.to(self.device),
                     )
 
                     dict_gen_losses = gen_losses._asdict()

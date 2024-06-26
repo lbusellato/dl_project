@@ -13,7 +13,6 @@ from dl_project.utils.custom_typing import (
     ClassifierOutputs,
 )
 from dl_project.neural_networks.classifier import Classifier
-from dl_project.utils.colored_mnist_dataloader import ColoredMNISTDataset
 
 
 class EDIM(nn.Module):
@@ -45,8 +44,8 @@ class EDIM(nn.Module):
         self.shared_dim = shared_dim
         self.exclusive_dim = exclusive_dim
 
-        self.img_feature_size = 4
-        self.img_feature_channels = 256
+        self.img_feature_size = 13 # Feature map size
+        self.img_feature_channels = 256 # Feature map channels
 
         # Encoders
         self.sh_enc_x = trained_encoder_x
@@ -104,10 +103,18 @@ class EDIM(nn.Module):
             shared_dim=shared_dim, exclusive_dim=exclusive_dim
         )
         # Metric nets
-        self.digit_bg_classifier = Classifier(feature_dim=exclusive_dim, output_dim=10)
-        self.digit_fg_classifier = Classifier(feature_dim=exclusive_dim, output_dim=10)
-        self.color_bg_classifier = Classifier(feature_dim=exclusive_dim, output_dim=12)
-        self.color_fg_classifier = Classifier(feature_dim=exclusive_dim, output_dim=12)
+        self.x_scale_classifier = Classifier(feature_dim=exclusive_dim, output_dim=8)
+        self.x_shape_classifier = Classifier(feature_dim=exclusive_dim, output_dim=4)
+        self.x_orientation_classifier = Classifier(feature_dim=exclusive_dim, output_dim=15)
+        self.y_scale_classifier = Classifier(feature_dim=exclusive_dim, output_dim=8)
+        self.y_shape_classifier = Classifier(feature_dim=exclusive_dim, output_dim=4)
+        self.y_orientation_classifier = Classifier(feature_dim=exclusive_dim, output_dim=15)
+        self.x_floor_hue_classifier = Classifier(feature_dim=exclusive_dim, output_dim=10)
+        self.x_wall_hue_classifier = Classifier(feature_dim=exclusive_dim, output_dim=10)
+        self.x_object_hue_classifier = Classifier(feature_dim=exclusive_dim, output_dim=10)
+        self.y_floor_hue_classifier = Classifier(feature_dim=exclusive_dim, output_dim=10)
+        self.y_wall_hue_classifier = Classifier(feature_dim=exclusive_dim, output_dim=10)
+        self.y_object_hue_classifier = Classifier(feature_dim=exclusive_dim, output_dim=10)
 
     def forward_generator(self, x: torch.Tensor, y: torch.Tensor) -> EDIMOutputs:
         """Forward pass of the generator
@@ -226,14 +233,30 @@ class EDIM(nn.Module):
         """
         out = edim_outputs
         # detach because we do not want compute the gradient here
-        digit_bg_logits = self.digit_bg_classifier(out.exclusive_x.detach())
-        digit_fg_logits = self.digit_fg_classifier(out.exclusive_y.detach())
-        color_bg_logits = self.color_bg_classifier(out.exclusive_x.detach())
-        color_fg_logits = self.color_fg_classifier(out.exclusive_y.detach())
+        x_floor_hue_logits = self.x_floor_hue_classifier(out.exclusive_x.detach())
+        x_wall_hue_logits = self.x_wall_hue_classifier(out.exclusive_x.detach())
+        x_object_hue_logits = self.x_object_hue_classifier(out.exclusive_x.detach())
+        y_floor_hue_logits = self.y_floor_hue_classifier(out.exclusive_y.detach())
+        y_wall_hue_logits = self.y_wall_hue_classifier(out.exclusive_y.detach())
+        y_object_hue_logits = self.y_object_hue_classifier(out.exclusive_y.detach())
+        x_scale_logits = self.x_scale_classifier(out.exclusive_x.detach())
+        x_shape_logits = self.x_shape_classifier(out.exclusive_x.detach())
+        x_orientation_logits = self.x_orientation_classifier(out.exclusive_x.detach())
+        y_scale_logits = self.y_scale_classifier(out.exclusive_y.detach())
+        y_shape_logits = self.y_shape_classifier(out.exclusive_y.detach())
+        y_orientation_logits = self.y_orientation_classifier(out.exclusive_y.detach())
 
         return ClassifierOutputs(
-            digit_bg_logits=digit_bg_logits,
-            digit_fg_logits=digit_fg_logits,
-            color_bg_logits=color_bg_logits,
-            color_fg_logits=color_fg_logits,
+            x_floor_hue_logits=x_floor_hue_logits,
+            x_wall_hue_logits=x_wall_hue_logits,
+            x_object_hue_logits=x_object_hue_logits,
+            y_floor_hue_logits=y_floor_hue_logits,
+            y_wall_hue_logits=y_wall_hue_logits,
+            y_object_hue_logits=y_object_hue_logits,
+            x_scale_logits=x_scale_logits,
+            x_shape_logits=x_shape_logits,
+            x_orientation_logits=x_orientation_logits,
+            y_scale_logits=y_scale_logits,
+            y_shape_logits=y_shape_logits,
+            y_orientation_logits=y_orientation_logits,
         )

@@ -55,38 +55,36 @@ class BaseEncoder(nn.Module):
 
         self.flatten = nn.Flatten()
 
-        # Get the feature_map_size after the convolutions
-        feature_map_size = img_size
+        # Get the img_size after the convolutions
         for _ in range(3):
-            feature_map_size = (feature_map_size - kernel_size + 1) // 2
+            img_size = (img_size - kernel_size + 1) // 2
 
         self.dense = nn.Linear(
-            in_features=(feature_map_size ** 2) * (num_filters * 2 ** 3),
+            in_features=(img_size ** 2) * (num_filters * 2 ** 3),
             out_features=repr_dim,
         )
 
-    def forward(self, x: torch.Tensor) -> EncoderOutput:
+    def forward(self, Input0: torch.Tensor) -> EncoderOutput:
         """Forward encoder
 
         Args:
-            x (torch.Tensor): Image from a given domain
+            Input0 (torch.Tensor): Image from a given domain
 
         Returns:
             EncoderOutput: Representation and feature map
         """
-        x = self.conv0(x)
-        x = self.leaky_relu(x)
-        x = self.conv1(x)
-        x = self.leaky_relu(x)
-        x = self.bn1(x)
-        x = self.conv2(x)
-        x = self.leaky_relu(x)
-        x = self.bn2(x)
-        x = self.conv3(x)
-        x = self.leaky_relu(x)
-        x = self.bn3(x)
-        feature = x
-        x = self.flatten(x)
-        representation = self.dense(x)
+        Conv0 = self.conv0(Input0)
+        Conv0 = self.leaky_relu(Conv0)
+        Conv1 = self.conv1(Conv0)
+        Conv1 = self.leaky_relu(Conv1)
+        Conv1 = self.bn1(Conv1)
+        Conv2 = self.conv2(Conv1)
+        Conv2 = self.leaky_relu(Conv2)
+        Conv2 = self.bn2(Conv2)
+        Conv3 = self.conv3(Conv2)
+        Conv3 = self.leaky_relu(Conv3)
+        Conv3 = self.bn3(Conv3)
+        Flat0 = self.flatten(Conv3)
+        Output0 = self.dense(Flat0)
 
-        return EncoderOutput(representation=representation, feature=feature)
+        return EncoderOutput(representation=Output0, feature=Flat0)

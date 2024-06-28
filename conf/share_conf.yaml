@@ -4,7 +4,7 @@ training_param:
   batch_size : 64
   learning_rate : 0.0001
   device: cuda
-  epochs: 50000
+  epochs: 1
 
 model_param:
   img_size : 64

@@ -43,8 +43,8 @@ class EDIM(nn.Module):
         self.shared_dim = shared_dim
         self.exclusive_dim = exclusive_dim
 
-        self.img_feature_size = 13 # Feature map size
-        self.img_feature_channels = 256 # Feature map channels
+        self.img_feature_size = 5 # Feature map size
+        self.img_feature_channels = 512 # Feature map channels
 
         # Encoders
         self.sh_enc_x = trained_encoder_x
@@ -68,27 +68,37 @@ class EDIM(nn.Module):
         )
         # Local statistics network
         self.local_stat_x = LocalStatisticsNetwork(
+            feature_map_channels=self.img_feature_channels,
             img_feature_channels=2 * self.img_feature_channels
             + self.shared_dim
-            + self.exclusive_dim
+            + self.exclusive_dim,
+            kernel_size=1,
+            latent_dim=self.shared_dim,
         )
 
         self.local_stat_y = LocalStatisticsNetwork(
+            feature_map_channels=self.img_feature_channels,
             img_feature_channels=2 * self.img_feature_channels
             + self.shared_dim
-            + self.exclusive_dim
+            + self.exclusive_dim,
+            kernel_size=1,
+            latent_dim=self.shared_dim,
         )
 
         # Global statistics network
         self.global_stat_x = GlobalStatisticsNetwork(
             feature_map_size=self.img_feature_size,
             feature_map_channels=2 * self.img_feature_channels,
+            num_filters=32,
+            kernel_size=3,
             latent_dim=self.shared_dim + self.exclusive_dim,
         )
 
         self.global_stat_y = GlobalStatisticsNetwork(
             feature_map_size=self.img_feature_size,
             feature_map_channels=2 * self.img_feature_channels,
+            num_filters=32,
+            kernel_size=3,
             latent_dim=self.shared_dim + self.exclusive_dim,
         )
 
@@ -153,20 +163,12 @@ class EDIM(nn.Module):
         global_mutual_M_R_y = self.global_stat_y(M_y, R_x_y)
         global_mutual_M_R_y_prime = self.global_stat_y(M_y_prime, R_x_y)
 
-        # Merge the feature map with the shared representation
-
-        concat_M_R_x = tile_and_concat(tensor=M_x, vector=R_y_x)
-        concat_M_R_x_prime = tile_and_concat(tensor=M_x_prime, vector=R_y_x)
-
-        concat_M_R_y = tile_and_concat(tensor=M_y, vector=R_x_y)
-        concat_M_R_y_prime = tile_and_concat(tensor=M_y_prime, vector=R_x_y)
-
         # Local mutual information estimation
 
-        local_mutual_M_R_x = self.local_stat_x(concat_M_R_x)
-        local_mutual_M_R_x_prime = self.local_stat_x(concat_M_R_x_prime)
-        local_mutual_M_R_y = self.local_stat_y(concat_M_R_y)
-        local_mutual_M_R_y_prime = self.local_stat_y(concat_M_R_y_prime)
+        local_mutual_M_R_x = self.local_stat_x(M_x, R_y_x)
+        local_mutual_M_R_x_prime = self.local_stat_x(M_x_prime, R_y_x)
+        local_mutual_M_R_y = self.local_stat_y(M_y, R_x_y)
+        local_mutual_M_R_y_prime = self.local_stat_y(M_y_prime, R_x_y)
 
         # Disentangling discriminator
 

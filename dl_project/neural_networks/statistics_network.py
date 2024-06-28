@@ -72,7 +72,7 @@ class LocalStatisticsNetwork(nn.Module):
         ShLConcat0 = self.tile_and_concat(ShLInput0, ShLInput1)
         ShLConv0 = self.ShLConv0(ShLConcat0)
         ShLConv0 = self.relu(ShLConv0)
-        ShLConv1 = self.ShLConv1(ShLConv1)
+        ShLConv1 = self.ShLConv1(ShLConv0)
         ShLConv1 = self.relu(ShLConv1)
         ShLOutput0 = self.ShLOutput0(ShLConv1)
 
@@ -91,7 +91,8 @@ class GlobalStatisticsNetwork(nn.Module):
     """
 
     def __init__(
-        self, feature_map_size: int, 
+        self, 
+        feature_map_size: int, 
         feature_map_channels: int, 
         num_filters: int,
         kernel_size: int,
@@ -119,10 +120,10 @@ class GlobalStatisticsNetwork(nn.Module):
         concat_size = flattened_size + latent_dim        
         self.ShGDense0 = nn.Linear(
             in_features=concat_size,
-            out_features=feature_map_channels,
+            out_features=512,
         )
-        self.ShGDense1 = nn.Linear(in_features=feature_map_channels, out_features=feature_map_channels)
-        self.ShGOutput0 = nn.Linear(in_features=feature_map_channels, out_features=1)
+        self.ShGDense1 = nn.Linear(in_features=512, out_features=512)
+        self.ShGOutput0 = nn.Linear(in_features=512, out_features=1)
 
         self.flatten = nn.Flatten()
 

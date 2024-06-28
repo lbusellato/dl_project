@@ -2,6 +2,7 @@ import h5py
 import numpy as np
 import random
 import torch
+import urllib
 
 from dl_project.utils.custom_typing import Shapes3DData
 from os import mkdir
@@ -30,8 +31,8 @@ class Shapes3D(Dataset):
         # Download the dataset
         self.dataset_path = join(self.cache_folder, '3dshapes.h5')
         if not exists(self.dataset_path):
-            raise FileNotFoundError('Download the dataset from https://storage.cloud.google.com/3d-shapes/3dshapes.h5 and place it in the cache folder.')
-                
+            urllib.urlretrieve('https://storage.googleapis.com/3d-shapes/3dshapes.h5', './cache/3dshapes.h5')
+                            
         # Lookup values for converting between features and labels        
         self.hues = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
         self.scales = [0.75, 0.82142857, 0.89285714, 0.96428571, 1.03571429, 1.10714286, 1.17857143, 1.25]

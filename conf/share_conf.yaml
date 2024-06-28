@@ -12,10 +12,8 @@ model_param:
   shared_dim : 64
   switched : True
   
-
-
 loss_param:
-  local_mutual_loss_coeff: 1
-  global_mutual_loss_coeff: 0.5
-  shared_loss_coeff : 0.1
+  local_mutual_loss_coeff: 1 #beta sh
+  global_mutual_loss_coeff: 0.5 #alpha sh
+  shared_loss_coeff : 0.1 #gamma
 

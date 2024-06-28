@@ -27,8 +27,8 @@ class SDIM(nn.Module):
         self.shared_dim = shared_dim
         self.switched = switched
 
-        self.img_feature_size = 13 # Feature map dimension
-        self.img_feature_channels = 256 # Feature map channels
+        self.img_feature_size = 5 # Feature map dimension
+        self.img_feature_channels = 512 # Feature map channels
 
         # Encoders
         self.sh_enc_x = BaseEncoder(
@@ -59,12 +59,16 @@ class SDIM(nn.Module):
         self.global_stat_x = GlobalStatisticsNetwork(
             feature_map_size=self.img_feature_size,
             feature_map_channels=self.img_feature_channels,
+            num_filters=32,
+            kernel_size=3,
             latent_dim=self.shared_dim,
         )
 
         self.global_stat_y = GlobalStatisticsNetwork(
             feature_map_size=self.img_feature_size,
             feature_map_channels=self.img_feature_channels,
+            num_filters=32,
+            kernel_size=3,
             latent_dim=self.shared_dim,
         )
 

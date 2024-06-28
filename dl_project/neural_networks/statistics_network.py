@@ -54,63 +54,76 @@ class GlobalStatisticsNetwork(nn.Module):
     Args:
         feature_map_size (int): Size of input feature maps
         feature_map_channels (int): Number of channels in the input feature maps
+        num_filters (int): Intermediate number of filters
+        kernel_size (int): Convolution kernel size
         latent_dim (int): Dimension of the representationss
     """
 
     def __init__(
-        self, feature_map_size: int, feature_map_channels: int, latent_dim: int
+        self, feature_map_size: int, 
+        feature_map_channels: int, 
+        num_filters: int,
+        kernel_size: int,
+        latent_dim: int
     ):
 
         super().__init__()
-        self.flatten = nn.Flatten()
-        self.dense1 = nn.Linear(
-            in_features=(feature_map_size ** 2 * feature_map_channels) + latent_dim,
-            out_features=512,
+
+        self.ShGConv0 = nn.Conv2d(
+            in_channels=feature_map_channels,
+            out_channels=num_filters * 2 ** 1,
+            kernel_size=kernel_size,
+            stride=1,
         )
-        self.dense2 = nn.Linear(in_features=512, out_features=512)
-        self.dense3 = nn.Linear(in_features=512, out_features=1)
+        self.ShGConv1 = nn.Conv2d(
+            in_channels=num_filters * 2 ** 1,
+            out_channels=num_filters * 2 ** 0,
+            kernel_size=kernel_size,
+            stride=1,
+        )
+
+        # Compute the size of the input features for the first dense layer
+        conv_output_size = feature_map_size - 2 * (kernel_size - 1)
+        flattened_size = num_filters * 2 ** 0 * conv_output_size * conv_output_size
+        concat_size = flattened_size + latent_dim        
+        self.ShGDense0 = nn.Linear(
+            in_features=concat_size,
+            out_features=feature_map_channels,
+        )
+        self.ShGDense1 = nn.Linear(in_features=feature_map_channels, out_features=feature_map_channels)
+        self.ShGOutput0 = nn.Linear(in_features=feature_map_channels, out_features=1)
+
+        self.flatten = nn.Flatten()
+
         self.relu = nn.ReLU()
 
     def forward(
-        self, feature_map: torch.Tensor, representation: torch.Tensor
+        self, ShGInput0: torch.Tensor, ShGInput1: torch.Tensor
     ) -> torch.Tensor:
-        feature_map = self.flatten(feature_map)
-        x = torch.cat([feature_map, representation], dim=1)
-        x = self.dense1(x)
-        x = self.relu(x)
-        x = self.dense2(x)
-        x = self.relu(x)
-        global_statistics = self.dense3(x)
+        """Forward pass for the Global Statistics Network
 
-        return global_statistics
+        Parameters
+        ----------
+        ShGInput0 : torch.Tensor
+            The feature map.
+        ShGInput1 : torch.Tensor
+            The feature representation.
 
+        Returns
+        -------
+        torch.Tensor
+            The global mutual information.
+        """
+        ShGConv0 = self.ShGConv0(ShGInput0)
+        ShGConv0 = self.relu(ShGConv0)
+        ShGConv1 = self.ShGConv1(ShGConv0)
+        ShGFlat0 = self.flatten(ShGConv1)
+        ShGConcat0 = torch.cat([ShGFlat0, ShGInput1], dim=1)
+        ShGDense0 = self.ShGDense0(ShGConcat0)
+        ShGDense0 = self.relu(ShGDense0)
+        ShGDense1 = self.ShGDense1(ShGDense0)
+        ShGDense1 = self.relu(ShGDense0)
+        ShGOutput0 = self.ShGOutput0(ShGDense1)
 
-if __name__ == "__main__":
-
-    img_size = 128
-    x = torch.zeros((64, 3, img_size, img_size))
-    enc_sh = BaseEncoder(
-        img_size=img_size, in_channels=3, num_filters=16, kernel_size=1, repr_dim=64
-    )
-    enc_ex = BaseEncoder(
-        img_size=img_size,
-        in_channels=3,
-        num_filters=16,
-        kernel_size=1,
-        repr_dim=64,
-    )
-
-    sh_repr, sh_feature = enc_sh(x)
-    ex_repr, ex_feature = enc_ex(x)
-    merge_repr = torch.cat([sh_repr, ex_repr], dim=1)
-    merge_feature = torch.cat([sh_feature, ex_feature], dim=1)
-    concat_repr = tile_and_concat(tensor=merge_feature, vector=merge_repr)
-    t_loc = LocalStatisticsNetwork(img_feature_channels=concat_repr.size(1))
-    t_glob = GlobalStatisticsNetwork(
-        feature_map_size=merge_feature.size(2),
-        feature_map_channels=merge_feature.size(1),
-        latent_dim=merge_repr.size(1),
-    )
-    print(t_glob(feature_map=merge_feature, representation=merge_repr).shape)
-    # print(b[0])
-    # # print(b[0].shape)
+        return ShGOutput0
+    

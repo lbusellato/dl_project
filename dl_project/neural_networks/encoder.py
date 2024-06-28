@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+
 from dl_project.utils.custom_typing import EncoderOutput
 
 
@@ -84,7 +85,8 @@ class BaseEncoder(nn.Module):
         Conv3 = self.conv3(Conv2)
         Conv3 = self.leaky_relu(Conv3)
         Conv3 = self.bn3(Conv3)
+        ShGInput0 = Conv3
         Flat0 = self.flatten(Conv3)
         Output0 = self.dense(Flat0)
 
-        return EncoderOutput(representation=Output0, feature=Flat0)
+        return EncoderOutput(representation=Output0, feature=ShGInput0)

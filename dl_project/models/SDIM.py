@@ -3,8 +3,7 @@ import torch.nn as nn
 from dl_project.neural_networks.encoder import BaseEncoder
 from dl_project.neural_networks.statistics_network import (
     LocalStatisticsNetwork,
-    GlobalStatisticsNetwork,
-    tile_and_concat,
+    GlobalStatisticsNetwork
 )
 from dl_project.utils.custom_typing import SDIMOutputs
 from dl_project.neural_networks.classifier import Classifier
@@ -48,11 +47,17 @@ class SDIM(nn.Module):
         )
         # Local statistics network
         self.local_stat_x = LocalStatisticsNetwork(
-            img_feature_channels=self.img_feature_channels + self.shared_dim
+            feature_map_channels=self.img_feature_channels,
+            img_feature_channels=self.img_feature_channels + self.shared_dim,
+            kernel_size=1,
+            latent_dim=self.shared_dim,
         )
 
         self.local_stat_y = LocalStatisticsNetwork(
-            img_feature_channels=self.img_feature_channels + self.shared_dim
+            feature_map_channels=self.img_feature_channels,
+            img_feature_channels=self.img_feature_channels + self.shared_dim,
+            kernel_size=1,
+            latent_dim=self.shared_dim,
         )
 
         # Global statistics network
@@ -116,20 +121,12 @@ class SDIM(nn.Module):
         global_mutual_M_R_y = self.global_stat_y(M_y, R_x_y)
         global_mutual_M_R_y_prime = self.global_stat_y(M_y_prime, R_x_y)
 
-        # Merge the feature map with the shared representation
-
-        concat_M_R_x = tile_and_concat(tensor=M_x, vector=R_y_x)
-        concat_M_R_x_prime = tile_and_concat(tensor=M_x_prime, vector=R_y_x)
-
-        concat_M_R_y = tile_and_concat(tensor=M_y, vector=R_x_y)
-        concat_M_R_y_prime = tile_and_concat(tensor=M_y_prime, vector=R_x_y)
-
         # Local mutual information estimation
 
-        local_mutual_M_R_x = self.local_stat_x(concat_M_R_x)
-        local_mutual_M_R_x_prime = self.local_stat_x(concat_M_R_x_prime)
-        local_mutual_M_R_y = self.local_stat_y(concat_M_R_y)
-        local_mutual_M_R_y_prime = self.local_stat_y(concat_M_R_y_prime)
+        local_mutual_M_R_x = self.local_stat_x(M_x, R_y_x)
+        local_mutual_M_R_x_prime = self.local_stat_x(M_x_prime, R_y_x)
+        local_mutual_M_R_y = self.local_stat_y(M_y, R_y_x)
+        local_mutual_M_R_y_prime = self.local_stat_y(M_y_prime, R_x_y)
 
         # Stop the gradient and compute classification task
         x_floor_hue_logits =  self.x_floor_hue_classifier(shared_x.detach())

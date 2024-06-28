@@ -4,7 +4,6 @@ from dl_project.neural_networks.encoder import BaseEncoder
 from dl_project.neural_networks.statistics_network import (
     LocalStatisticsNetwork,
     GlobalStatisticsNetwork,
-    tile_and_concat,
 )
 from dl_project.neural_networks.gan import Discriminator
 from dl_project.utils.custom_typing import (

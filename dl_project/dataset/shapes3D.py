@@ -14,7 +14,7 @@ class Shapes3D(Dataset):
     
     def __init__(self,
                  train = 0.7,
-                 max_pairs = 10,
+                 max_pairs = 5,
                  mode='train') -> None:
         super().__init__()
         

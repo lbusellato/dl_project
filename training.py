@@ -9,7 +9,6 @@ from dl_project.losses.EDIM_loss import EDIMLoss
 from dl_project.neural_networks.encoder import BaseEncoder
 from dl_project.trainer.EDIM_trainer import EDIM, EDIMTrainer, freeze_grad_and_eval
 from dl_project.trainer.SDIM_trainer import SDIM, SDIMTrainer
-from dl_project.utils.graphics import show_images_grid
 from os.path import join
 from ruamel.yaml import YAML
 

@@ -4,12 +4,12 @@ training_param:
   batch_size : 64
   learning_rate : 0.0001
   device: cuda
-  epochs : 100
+  epochs : 250
 
 model_param:
   img_size : 64
   channels : 3
-  exclusive_dim: 8
+  exclusive_dim: 64
   switched : True
   
 shared_param:

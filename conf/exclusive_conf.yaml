@@ -4,13 +4,12 @@ training_param:
   batch_size : 32
   learning_rate : 0.0001
   device: cuda
-  epochs : 50
+  epochs : 1
 
 model_param:
   img_size : 64
   channels : 3
   exclusive_dim: 64
-  switched : True
   
 shared_param:
   img_size : 64
@@ -19,4 +18,4 @@ shared_param:
 loss_param:
   local_mutual_loss_coeff: 1 #beta ex
   global_mutual_loss_coeff: 0.5 #alpha ex
-  disentangling_loss_coeff: 0.1 #gamma
+  disentangling_loss_coeff: 0.01 #lambda adv

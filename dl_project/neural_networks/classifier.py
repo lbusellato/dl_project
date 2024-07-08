@@ -19,9 +19,8 @@ class Classifier(nn.Module):
         self.bn2 = nn.BatchNorm1d(num_features=output_dim)
         self.CDense2 = nn.Linear(in_features=output_dim, out_features=output_dim)
 
-        self.bn3 = nn.BatchNorm1d(num_features=output_dim)
-
         self.relu = nn.ReLU()
+        self.softmax = nn.Softmax(dim=1)
 
     def forward(self, CInput0: torch.Tensor):
         """Forward pass for the classifier.
@@ -43,6 +42,6 @@ class Classifier(nn.Module):
         CDense1 = self.bn2(CDense1)
         CDense1 = self.relu(CDense1)
         CDense2 = self.CDense2(CDense1)
-        COutput0 = self.bn3(CDense2)
+        COutput0 = self.softmax(CDense2)
 
         return COutput0

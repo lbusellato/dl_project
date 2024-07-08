@@ -41,23 +41,14 @@ class SDIMTrainer:
         self.batch_size = batch_size
 
         # Network optimizers
-        self.optimizer_encoder_x = optim.Adam(
-            model.sh_enc_x.parameters(), lr=learning_rate
+        self.optimizer_encoder = optim.Adam(
+            model.sh_enc.parameters(), lr=learning_rate
         )
-        self.optimizer_encoder_y = optim.Adam(
-            model.sh_enc_y.parameters(), lr=learning_rate
+        self.optimizer_local_stat = optim.Adam(
+            model.local_stat.parameters(), lr=learning_rate
         )
-        self.optimizer_local_stat_x = optim.Adam(
-            model.local_stat_x.parameters(), lr=learning_rate
-        )
-        self.optimizer_local_stat_y = optim.Adam(
-            model.local_stat_y.parameters(), lr=learning_rate
-        )
-        self.optimizer_global_stat_x = optim.Adam(
-            model.global_stat_x.parameters(), lr=learning_rate
-        )
-        self.optimizer_global_stat_y = optim.Adam(
-            model.global_stat_y.parameters(), lr=learning_rate
+        self.optimizer_global_stat = optim.Adam(
+            model.global_stat.parameters(), lr=learning_rate
         )
 
         self.x_optimizer_floor_hue_classifier = optim.Adam(
@@ -91,14 +82,11 @@ class SDIMTrainer:
 
     def gradient_zero(self):
         """Set all the networks gradient to zero"""
-        self.optimizer_encoder_x.zero_grad()
-        self.optimizer_encoder_y.zero_grad()
+        self.optimizer_encoder.zero_grad()
 
-        self.optimizer_local_stat_x.zero_grad()
-        self.optimizer_local_stat_y.zero_grad()
+        self.optimizer_local_stat.zero_grad()
 
-        self.optimizer_global_stat_x.zero_grad()
-        self.optimizer_global_stat_y.zero_grad()
+        self.optimizer_global_stat.zero_grad()
 
         self.x_optimizer_floor_hue_classifier.zero_grad()
         self.x_optimizer_wall_hue_classifier.zero_grad()
@@ -158,14 +146,11 @@ class SDIMTrainer:
     def gradient_step(self):
         """Make an optimisation step for all the networks"""
 
-        self.optimizer_encoder_x.step()
-        self.optimizer_encoder_y.step()
+        self.optimizer_encoder.step()
 
-        self.optimizer_local_stat_x.step()
-        self.optimizer_local_stat_y.step()
+        self.optimizer_local_stat.step()
 
-        self.optimizer_global_stat_x.step()
-        self.optimizer_global_stat_y.step()
+        self.optimizer_global_stat.step()
 
         self.x_optimizer_floor_hue_classifier.step()
         self.x_optimizer_wall_hue_classifier.step()
@@ -219,5 +204,5 @@ class SDIMTrainer:
                     self.gradient_step()
 
             encoder_x_path, encoder_y_path = "sh_encoder_x", "sh_encoder_y"
-            mpy.log_state_dict(self.model.sh_enc_x.state_dict(), encoder_x_path)
-            mpy.log_state_dict(self.model.sh_enc_y.state_dict(), encoder_y_path)
+            mpy.log_state_dict(self.model.sh_enc.state_dict(), encoder_x_path)
+            mpy.log_state_dict(self.model.sh_enc.state_dict(), encoder_y_path)

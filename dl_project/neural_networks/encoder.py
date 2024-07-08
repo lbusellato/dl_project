@@ -48,7 +48,7 @@ class BaseEncoder(nn.Module):
             in_channels=num_filters * 2 ** 2,
             out_channels=num_filters * 2 ** 3,
             kernel_size=kernel_size,
-            stride=2,
+            stride=2, 
         )
         self.bn3 = nn.BatchNorm2d(num_features=num_filters * 2 ** 3)
 

@@ -93,8 +93,8 @@ class Shapes3D(Dataset):
                 # Create pairs within each group, limit the number of pairs to max_pairs_per_group
                 for _ in range(self.max_pairs):
                     idx1, idx2 = random.sample(indices, 2)
-                    if (idx1, idx2) not in pairs: pairs.append((idx1, idx2))
-            
+                    if (idx1, idx2) not in pairs and idx1 != idx2: pairs.append((idx1, idx2))
+        
             np.save(join(self.cache_folder, self.mode + '_pairs.npy'), pairs)
         else:
             images = np.load(join(self.cache_folder, self.mode + '_images.npy'))
@@ -103,7 +103,7 @@ class Shapes3D(Dataset):
         return images, labels, pairs
 
     def __len__(self):
-        return len(self.pairs)
+        return 64
 
     def __getitem__(self, idx):
         idx1, idx2 = self.pairs[idx]
@@ -123,4 +123,5 @@ class Shapes3D(Dataset):
             shape_label=torch.tensor(label1[4], dtype=torch.float32),
             orientation_label=torch.tensor(label1[5], dtype=torch.float32),
         )
+
     

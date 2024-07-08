@@ -52,7 +52,7 @@ class EDIMTrainer:
         device: str,
     ):
 
-        self.train_dataloader = DataLoader(dataset_train, batch_size=batch_size)
+        self.train_dataloader = DataLoader(dataset_train, batch_size=batch_size, shuffle=True)
         self.model = model.to(device)
         self.loss = loss
         self.device = device
@@ -62,32 +62,20 @@ class EDIMTrainer:
 
         # Network optimizers
 
-        self.optimizer_encoder_x = optim.Adam(
-            model.ex_enc_x.parameters(), lr=learning_rate
+        self.optimizer_encoder = optim.Adam(
+            model.ex_enc.parameters(), lr=learning_rate
         )
-        self.optimizer_encoder_y = optim.Adam(
-            model.ex_enc_y.parameters(), lr=learning_rate
+        self.optimizer_local_stat = optim.Adam(
+            model.local_stat.parameters(), lr=learning_rate
         )
-        self.optimizer_local_stat_x = optim.Adam(
-            model.local_stat_x.parameters(), lr=learning_rate
-        )
-        self.optimizer_local_stat_y = optim.Adam(
-            model.local_stat_y.parameters(), lr=learning_rate
-        )
-        self.optimizer_global_stat_x = optim.Adam(
-            model.global_stat_x.parameters(), lr=learning_rate
-        )
-        self.optimizer_global_stat_y = optim.Adam(
-            model.global_stat_y.parameters(), lr=learning_rate
+        self.optimizer_global_stat = optim.Adam(
+            model.global_stat.parameters(), lr=learning_rate
         )
 
-        self.optimizer_discriminator_x = optim.Adam(
-            model.discriminator_x.parameters(), lr=learning_rate
+        self.optimizer_discriminator = optim.Adam(
+            model.discriminator.parameters(), lr=learning_rate
         )
 
-        self.optimizer_discriminator_y = optim.Adam(
-            model.discriminator_y.parameters(), lr=learning_rate
-        )
 
         self.x_optimizer_floor_hue_classifier = optim.Adam(
             model.x_floor_hue_classifier.parameters(), lr=learning_rate
@@ -137,27 +125,21 @@ class EDIMTrainer:
 
             GenLosses: Generator losses
         """
-        self.optimizer_encoder_x.zero_grad()
-        self.optimizer_encoder_y.zero_grad()
+        self.optimizer_encoder.zero_grad()
 
-        self.optimizer_local_stat_x.zero_grad()
-        self.optimizer_local_stat_y.zero_grad()
+        self.optimizer_local_stat.zero_grad()
 
-        self.optimizer_global_stat_x.zero_grad()
-        self.optimizer_global_stat_y.zero_grad()
+        self.optimizer_global_stat.zero_grad()
 
         losses = self.loss.compute_generator_loss(
             edim_outputs=edim_outputs,
         )
         losses.encoder_loss.backward()
-        self.optimizer_encoder_x.step()
-        self.optimizer_encoder_y.step()
+        self.optimizer_encoder.step()
 
-        self.optimizer_local_stat_x.step()
-        self.optimizer_local_stat_y.step()
+        self.optimizer_local_stat.step()
 
-        self.optimizer_global_stat_x.step()
-        self.optimizer_global_stat_y.step()
+        self.optimizer_global_stat.step()
         return losses
 
     def update_discriminator(
@@ -173,12 +155,10 @@ class EDIMTrainer:
         Returns:
             DiscrLosses: Discriminator losses
         """
-        self.optimizer_discriminator_x.zero_grad()
-        self.optimizer_discriminator_y.zero_grad()
+        self.optimizer_discriminator.zero_grad()
         losses = self.loss.compute_discriminator_loss(discr_outputs=discr_outputs)
         losses.gan_loss_d.backward()
-        self.optimizer_discriminator_x.step()
-        self.optimizer_discriminator_y.step()
+        self.optimizer_discriminator.step()
 
         return losses
 
@@ -188,9 +168,6 @@ class EDIMTrainer:
         x_floor_hue_labels: torch.Tensor,
         x_wall_hue_labels: torch.Tensor,
         x_object_hue_labels: torch.Tensor,
-        y_floor_hue_labels: torch.Tensor,
-        y_wall_hue_labels: torch.Tensor,
-        y_object_hue_labels: torch.Tensor,
         scale_labels: torch.Tensor,
         shape_labels: torch.Tensor,
         orientation_labels: torch.Tensor,
@@ -229,9 +206,6 @@ class EDIMTrainer:
             x_floor_hue_labels=x_floor_hue_labels,
             x_wall_hue_labels=x_wall_hue_labels,
             x_object_hue_labels=x_object_hue_labels,
-            y_floor_hue_labels=y_floor_hue_labels,
-            y_wall_hue_labels=y_wall_hue_labels,
-            y_object_hue_labels=y_object_hue_labels,
             scale_labels=scale_labels,
             shape_labels=shape_labels,
             orientation_labels=orientation_labels,
@@ -270,7 +244,7 @@ class EDIMTrainer:
                 for idx, train_batch in enumerate(self.train_dataloader):
                     sample = train_batch
                     edim_outputs = self.model.forward_generator(
-                        x=sample.x.to(self.device), y=sample.y.to(self.device)
+                        x=sample.x.to(self.device)
                     )
                     gen_losses = self.update_generator(edim_outputs=edim_outputs)
 
@@ -289,9 +263,6 @@ class EDIMTrainer:
                         x_floor_hue_labels=sample.x_floor_hue_label.to(self.device),
                         x_wall_hue_labels=sample.x_wall_hue_label.to(self.device),
                         x_object_hue_labels=sample.x_object_hue_label.to(self.device),
-                        y_floor_hue_labels=sample.y_floor_hue_label.to(self.device),
-                        y_wall_hue_labels=sample.y_wall_hue_label.to(self.device),
-                        y_object_hue_labels=sample.y_object_hue_label.to(self.device),
                         scale_labels=sample.scale_label.to(self.device),
                         shape_labels=sample.shape_label.to(self.device),
                         orientation_labels=sample.orientation_label.to(self.device),
@@ -314,5 +285,5 @@ class EDIMTrainer:
                     log_step += 1
 
             encoder_x_path, encoder_y_path = "ex_encoder", "ex_encoder_y"
-            mpy.log_state_dict(self.model.ex_enc_x.state_dict(), encoder_x_path)
-            mpy.log_state_dict(self.model.ex_enc_y.state_dict(), encoder_y_path)
+            mpy.log_state_dict(self.model.ex_enc.state_dict(), encoder_x_path)
+            mpy.log_state_dict(self.model.ex_enc.state_dict(), encoder_y_path)

@@ -12,7 +12,7 @@ def show_images_grid(imgs):
     if num_images > 1:
         ncols = int(np.ceil(num_images**0.5))
         nrows = int(np.ceil(num_images / ncols))
-        _, axes = plt.subplots(ncols, nrows, figsize=(nrows * 3, ncols * 3))
+        _, axes = plt.subplots(ncols, nrows, figsize=(15,15))
         axes = axes.flatten()
 
         for ax_i, ax in enumerate(axes):

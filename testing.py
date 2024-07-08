@@ -1,9 +1,6 @@
-import csv
-import matplotlib.pyplot as plt
+from dl_project.utils.graphics import show_images_grid
+from dl_project.dataset.shapes3D import Shapes3D
 
-with open('shape_accuracy') as f:
-    reader = csv.DictReader(f, delimiter=' ')
-    curve = [row['a'] for row in reader]
-
-plt.plot(curve)
-plt.show()
+ds = Shapes3D()
+pair = ds.pairs[0]
+show_images_grid([ds.images[pair[0],:,:,:],ds.images[pair[1],:,:,:]])

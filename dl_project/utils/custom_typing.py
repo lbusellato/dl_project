@@ -15,16 +15,16 @@ class EncoderOutput(NamedTuple):
 class Shapes3DData(NamedTuple):
     
     x: torch.Tensor
-    y: torch.Tensor
     x_floor_hue_label: torch.Tensor
     x_wall_hue_label: torch.Tensor
     x_object_hue_label: torch.Tensor
-    y_floor_hue_label: torch.Tensor
-    y_wall_hue_label: torch.Tensor
-    y_object_hue_label: torch.Tensor
     scale_label: torch.Tensor
     shape_label: torch.Tensor
     orientation_label: torch.Tensor
+    y: torch.Tensor=torch.empty((1,1,1,1))
+    y_floor_hue_label: torch.Tensor=torch.empty((1,1,1,1))
+    y_wall_hue_label: torch.Tensor=torch.empty((1,1,1,1))
+    y_object_hue_label: torch.Tensor=torch.empty((1,1,1,1))
 
 
 class SDIMOutputs(NamedTuple):
@@ -52,22 +52,13 @@ class SDIMOutputs(NamedTuple):
 class EDIMOutputs(NamedTuple):
     global_mutual_M_R_x: torch.Tensor
     global_mutual_M_R_x_prime: torch.Tensor
-    global_mutual_M_R_y: torch.Tensor
-    global_mutual_M_R_y_prime: torch.Tensor
     local_mutual_M_R_x: torch.Tensor
     local_mutual_M_R_x_prime: torch.Tensor
-    local_mutual_M_R_y: torch.Tensor
-    local_mutual_M_R_y_prime: torch.Tensor
     shared_x: torch.Tensor
-    shared_y: torch.Tensor
     fake_x: torch.Tensor
-    fake_y: torch.Tensor
-    R_y_x: torch.Tensor
-    R_x_y: torch.Tensor
     shuffle_x: torch.Tensor
-    shuffle_y: torch.Tensor
+    R_x_y: torch.Tensor
     exclusive_x: torch.Tensor
-    exclusive_y: torch.Tensor
 
 
 class SDIMLosses(NamedTuple):
@@ -108,27 +99,15 @@ class ClassifLosses(NamedTuple):
     x_floor_hue_classif_loss: torch.Tensor
     x_wall_hue_classif_loss: torch.Tensor
     x_object_hue_classif_loss: torch.Tensor
-    y_floor_hue_classif_loss: torch.Tensor
-    y_wall_hue_classif_loss: torch.Tensor
-    y_object_hue_classif_loss: torch.Tensor
     x_scale_classif_loss: torch.Tensor
     x_shape_classif_loss: torch.Tensor
     x_orientation_classif_loss: torch.Tensor
-    y_scale_classif_loss: torch.Tensor
-    y_shape_classif_loss: torch.Tensor
-    y_orientation_classif_loss: torch.Tensor
     x_floor_hue_accuracy: torch.Tensor
     x_wall_hue_accuracy: torch.Tensor
     x_object_hue_accuracy: torch.Tensor
-    y_floor_hue_accuracy: torch.Tensor
-    y_wall_hue_accuracy: torch.Tensor
-    y_object_hue_accuracy: torch.Tensor
     x_scale_accuracy: torch.Tensor
     x_shape_accuracy: torch.Tensor
     x_orientation_accuracy: torch.Tensor
-    y_scale_accuracy: torch.Tensor
-    y_shape_accuracy: torch.Tensor
-    y_orientation_accuracy: torch.Tensor
 
 
 class DiscrLosses(NamedTuple):
@@ -147,21 +126,13 @@ class GeneratorOutputs(NamedTuple):
 class DiscriminatorOutputs(NamedTuple):
     disentangling_information_x: torch.Tensor
     disentangling_information_x_prime: torch.Tensor
-    disentangling_information_y: torch.Tensor
-    disentangling_information_y_prime: torch.Tensor
 
 
 class ClassifierOutputs(NamedTuple):
     x_floor_hue_logits: torch.Tensor
     x_wall_hue_logits: torch.Tensor
     x_object_hue_logits: torch.Tensor
-    y_floor_hue_logits: torch.Tensor
-    y_wall_hue_logits: torch.Tensor
-    y_object_hue_logits: torch.Tensor
     x_scale_logits: torch.Tensor
     x_shape_logits: torch.Tensor
     x_orientation_logits: torch.Tensor
-    y_scale_logits: torch.Tensor
-    y_shape_logits: torch.Tensor
-    y_orientation_logits: torch.Tensor
 

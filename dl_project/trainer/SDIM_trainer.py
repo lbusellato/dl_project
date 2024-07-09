@@ -1,8 +1,8 @@
 import torch.optim as optim
 import torch
-from dl_project.losses.EDIM_loss import EDIMLoss
 from dl_project.models.SDIM import SDIM
 from dl_project.losses.SDIM_loss import SDIMLoss
+from torch.cuda.amp import GradScaler
 from torch.utils.data.dataloader import DataLoader
 from torch.utils.data import Dataset
 from tqdm import tqdm
@@ -79,24 +79,25 @@ class SDIMTrainer:
             model.orientation_classifier.parameters(), lr=learning_rate
         )
 
+        self.scaler = GradScaler()
 
     def gradient_zero(self):
         """Set all the networks gradient to zero"""
-        self.optimizer_encoder.zero_grad()
+        self.optimizer_encoder.zero_grad(set_to_none=True)
 
-        self.optimizer_local_stat.zero_grad()
+        self.optimizer_local_stat.zero_grad(set_to_none=True)
 
-        self.optimizer_global_stat.zero_grad()
+        self.optimizer_global_stat.zero_grad(set_to_none=True)
 
-        self.x_optimizer_floor_hue_classifier.zero_grad()
-        self.x_optimizer_wall_hue_classifier.zero_grad()
-        self.x_optimizer_object_hue_classifier.zero_grad()
-        self.y_optimizer_floor_hue_classifier.zero_grad()
-        self.y_optimizer_wall_hue_classifier.zero_grad()
-        self.y_optimizer_object_hue_classifier.zero_grad()
-        self.optimizer_scale_classifier.zero_grad()
-        self.optimizer_shape_classifier.zero_grad()
-        self.optimizer_orientation_classifier.zero_grad()
+        self.x_optimizer_floor_hue_classifier.zero_grad(set_to_none=True)
+        self.x_optimizer_wall_hue_classifier.zero_grad(set_to_none=True)
+        self.x_optimizer_object_hue_classifier.zero_grad(set_to_none=True)
+        self.y_optimizer_floor_hue_classifier.zero_grad(set_to_none=True)
+        self.y_optimizer_wall_hue_classifier.zero_grad(set_to_none=True)
+        self.y_optimizer_object_hue_classifier.zero_grad(set_to_none=True)
+        self.optimizer_scale_classifier.zero_grad(set_to_none=True)
+        self.optimizer_shape_classifier.zero_grad(set_to_none=True)
+        self.optimizer_orientation_classifier.zero_grad(set_to_none=True)
 
     def compute_gradient(
         self,
@@ -140,27 +141,24 @@ class SDIMTrainer:
             shape_labels=shape_labels,
             orientation_labels=orientation_labels,
         )
-        losses.total_loss.backward()
+        #losses.total_loss.backward()
+        self.scaler.scale(losses.total_loss).backward()
         return losses
 
     def gradient_step(self):
         """Make an optimisation step for all the networks"""
-
-        self.optimizer_encoder.step()
-
-        self.optimizer_local_stat.step()
-
-        self.optimizer_global_stat.step()
-
-        self.x_optimizer_floor_hue_classifier.step()
-        self.x_optimizer_wall_hue_classifier.step()
-        self.x_optimizer_object_hue_classifier.step()
-        self.y_optimizer_floor_hue_classifier.step()
-        self.y_optimizer_wall_hue_classifier.step()
-        self.y_optimizer_object_hue_classifier.step()
-        self.optimizer_scale_classifier.step()
-        self.optimizer_shape_classifier.step()
-        self.optimizer_orientation_classifier.step()
+        self.scaler.step(self.optimizer_encoder)
+        self.scaler.step(self.optimizer_local_stat)
+        self.scaler.step(self.optimizer_global_stat)
+        self.scaler.step(self.x_optimizer_floor_hue_classifier)
+        self.scaler.step(self.x_optimizer_wall_hue_classifier)
+        self.scaler.step(self.x_optimizer_object_hue_classifier)
+        self.scaler.step(self.y_optimizer_floor_hue_classifier)
+        self.scaler.step(self.y_optimizer_wall_hue_classifier)
+        self.scaler.step(self.y_optimizer_object_hue_classifier)
+        self.scaler.step(self.optimizer_scale_classifier)
+        self.scaler.step(self.optimizer_shape_classifier)
+        self.scaler.step(self.optimizer_orientation_classifier)
         
     def train(self, epochs, xp_name="test"):
         """Trained shared model and log losses and accuracy on Mlflow.
@@ -177,31 +175,31 @@ class SDIMTrainer:
             mlflow.log_param("Global mutual weight", self.loss.global_mutual_loss_coeff)
             mlflow.log_param("L1 weight", self.loss.shared_loss_coeff)
             log_step = 0
-            for epoch in tqdm(range(epochs)):
-                for idx, train_batch in enumerate(self.train_dataloader):
-                    sample = train_batch
-                    self.gradient_zero()
-                    sdim_outputs = self.model(
-                        x=sample.x.to(self.device), y=sample.y.to(self.device)
-                    )
-                    losses = self.compute_gradient(
-                        sdim_output=sdim_outputs,
-                        x_floor_hue_labels=sample.x_floor_hue_label.to(self.device),
-                        x_wall_hue_labels=sample.x_wall_hue_label.to(self.device),
-                        x_object_hue_labels=sample.x_object_hue_label.to(self.device),
-                        y_floor_hue_labels=sample.y_floor_hue_label.to(self.device),
-                        y_wall_hue_labels=sample.y_wall_hue_label.to(self.device),
-                        y_object_hue_labels=sample.y_object_hue_label.to(self.device),
-                        scale_labels=sample.scale_label.to(self.device),
-                        shape_labels=sample.shape_label.to(self.device),
-                        orientation_labels=sample.orientation_label.to(self.device),
-                    )
-                    dict_losses = losses._asdict()
-                    mlflow.log_metrics(
-                        {k: v.item() for k, v in dict_losses.items()}, step=log_step
-                    )
-                    log_step += 1
-                    self.gradient_step()
+            for _ in tqdm(range(epochs)):
+                sample = next(iter(self.train_dataloader))
+                self.gradient_zero()
+                sdim_outputs = self.model(
+                    x=sample.x.to(self.device), y=sample.y.to(self.device)
+                )
+                losses = self.compute_gradient(
+                    sdim_output=sdim_outputs,
+                    x_floor_hue_labels=sample.x_floor_hue_label.to(self.device),
+                    x_wall_hue_labels=sample.x_wall_hue_label.to(self.device),
+                    x_object_hue_labels=sample.x_object_hue_label.to(self.device),
+                    y_floor_hue_labels=sample.y_floor_hue_label.to(self.device),
+                    y_wall_hue_labels=sample.y_wall_hue_label.to(self.device),
+                    y_object_hue_labels=sample.y_object_hue_label.to(self.device),
+                    scale_labels=sample.scale_label.to(self.device),
+                    shape_labels=sample.shape_label.to(self.device),
+                    orientation_labels=sample.orientation_label.to(self.device),
+                )
+                dict_losses = losses._asdict()
+                mlflow.log_metrics(
+                    {k: v.item() for k, v in dict_losses.items()}, step=log_step
+                )
+                log_step += 1
+                self.gradient_step()
+                self.scaler.update()
 
             encoder_x_path, encoder_y_path = "sh_encoder_x", "sh_encoder_y"
             mpy.log_state_dict(self.model.sh_enc.state_dict(), encoder_x_path)

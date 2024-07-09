@@ -38,9 +38,7 @@ trained_enc_y = BaseEncoder(
 )
 
 # Load the trained shared encoders
-run_folder = join('mlruns', os.listdir('mlruns')[-1])
-exp_folder = os.listdir(run_folder)[0]
-trained_encoder_path = join(run_folder, exp_folder)
+trained_encoder_path = './mlruns/sdim/run1'
 trained_enc_x_path=join(trained_encoder_path, "artifacts/sh_encoder_x/state_dict.pth")
 trained_enc_y_path=join(trained_encoder_path, "artifacts/sh_encoder_y/state_dict.pth")
 trained_enc_x.load_state_dict(torch.load(trained_enc_x_path))
@@ -48,7 +46,7 @@ trained_enc_y.load_state_dict(torch.load(trained_enc_y_path))
 freeze_grad_and_eval(trained_enc_x)
 freeze_grad_and_eval(trained_enc_y)
 
-train_dataset = Shapes3D(mode='test')
+train_dataset = Shapes3D()
 
 edim = EDIM(
     img_size=MODEL_PARAM["img_size"],

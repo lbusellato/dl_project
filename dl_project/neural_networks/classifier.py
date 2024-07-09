@@ -13,11 +13,11 @@ class Classifier(nn.Module):
         """
         super().__init__()
 
-        self.CDense0 = nn.Linear(in_features=feature_dim, out_features=units)
-        self.bn1 = nn.BatchNorm1d(num_features=units)
-        self.CDense1 = nn.Linear(in_features=units, out_features=output_dim)
-        self.bn2 = nn.BatchNorm1d(num_features=output_dim)
-        self.CDense2 = nn.Linear(in_features=output_dim, out_features=output_dim)
+        self.CDense0 = nn.Linear(in_features=feature_dim, out_features=units,device='cuda',bias=False)
+        self.bn1 = nn.BatchNorm1d(num_features=units,device='cuda')
+        self.CDense1 = nn.Linear(in_features=units, out_features=output_dim,device='cuda',bias=False)
+        self.bn2 = nn.BatchNorm1d(num_features=output_dim,device='cuda')
+        self.CDense2 = nn.Linear(in_features=output_dim, out_features=output_dim,device='cuda')
 
         self.relu = nn.ReLU()
         self.softmax = nn.Softmax(dim=1)

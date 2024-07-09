@@ -28,29 +28,29 @@ class BaseEncoder(nn.Module):
             in_channels=in_channels,
             out_channels=num_filters * 2 ** 0,
             kernel_size=kernel_size,
-            stride=1,
+            stride=1,device='cuda'
         )
         self.conv1 = nn.Conv2d(
             in_channels=num_filters * 2 ** 0,
             out_channels=num_filters * 2 ** 1,
             kernel_size=kernel_size,
-            stride=2,
+            stride=2,device='cuda',bias=False
         )
         self.bn1 = nn.BatchNorm2d(num_features=num_filters * 2 ** 1)
         self.conv2 = nn.Conv2d(
             in_channels=num_filters * 2 ** 1,
             out_channels=num_filters * 2 ** 2,
             kernel_size=kernel_size,
-            stride=2,
+            stride=2,device='cuda',bias=False
         )
         self.bn2 = nn.BatchNorm2d(num_features=num_filters * 2 ** 2)
         self.conv3 = nn.Conv2d(
             in_channels=num_filters * 2 ** 2,
             out_channels=num_filters * 2 ** 3,
             kernel_size=kernel_size,
-            stride=2, 
+            stride=2, device='cuda',bias=False
         )
-        self.bn3 = nn.BatchNorm2d(num_features=num_filters * 2 ** 3)
+        self.bn3 = nn.BatchNorm2d(num_features=num_filters * 2 ** 3,device='cuda')
 
         self.leaky_relu = nn.LeakyReLU()
 
@@ -62,7 +62,7 @@ class BaseEncoder(nn.Module):
 
         self.dense = nn.Linear(
             in_features=(img_size ** 2) * (num_filters * 2 ** 3),
-            out_features=repr_dim,
+            out_features=repr_dim,device='cuda'
         )
 
     def forward(self, Input0: torch.Tensor) -> EncoderOutput:
@@ -87,6 +87,6 @@ class BaseEncoder(nn.Module):
         Conv3 = self.bn3(Conv3)
         ShGInput0 = Conv3
         Flat0 = self.flatten(Conv3)
-        Output0 = self.dense(Flat0)
+        ShGInput1 = self.dense(Flat0)
 
-        return EncoderOutput(representation=Output0, feature=ShGInput0)
+        return EncoderOutput(representation=ShGInput1, feature=ShGInput0)

@@ -14,13 +14,9 @@ ROOT = dirname(dirname(dirname(abspath(__file__))))
 class Shapes3D(Dataset):
     
     def __init__(self,
-                 train = 0.7,
-                 max_pairs = 5,
-                 mode='train') -> None:
+                 max_pairs = 40) -> None:
         super().__init__()
         
-        self.mode = mode
-        self.train = train
         self.max_pairs = max_pairs
 
         # Create the folder for cache storage
@@ -56,27 +52,19 @@ class Shapes3D(Dataset):
 
     def load_data(self):
 
-        if self.mode=='train' and not exists(join(self.cache_folder, 'train_pairs.npy')) or \
-            self.mode=='test' and not exists(join(self.cache_folder, 'test_pairs.npy')):      
+        if not exists(join(self.cache_folder, 'pairs.npy')):    
             # Convert the data to numpy arrays if they are not stored in the cache
-            if self.mode=='train' and not exists(join(self.cache_folder, 'train_images.npy')) or \
-                self.mode=='test' and not exists(join(self.cache_folder, 'test_images.npy')):
+            if not exists(join(self.cache_folder, 'images.npy')):
                 with h5py.File(self.dataset_path, 'r') as f:
                     images = np.array(f['images'])
                     labels = np.array(f['labels'])
-                    # Subsample the dataset
-                    indices = np.random.choice(len(images), int(len(images) * self.train), replace=False)
-                    if self.mode == 'test':
-                        indices = np.setdiff1d(np.arange(len(images)), indices)
-                    images = images[indices]
-                    labels = labels[indices]
                     # Convert from raw values to labels
                     labels = self.convert_features_to_labels(labels)
-                    np.save(join(self.cache_folder, self.mode + '_images.npy'), images)
-                    np.save(join(self.cache_folder, self.mode + '_labels.npy'), labels)
+                    np.save(join(self.cache_folder, 'images.npy'), images)
+                    np.save(join(self.cache_folder, 'labels.npy'), labels)
             else:
-                images = np.load(join(self.cache_folder, self.mode + '_images.npy'))
-                labels = np.load(join(self.cache_folder, self.mode + '_labels.npy'))
+                images = np.load(join(self.cache_folder, 'images.npy'))
+                labels = np.load(join(self.cache_folder, 'labels.npy'))
             
             # Create a list of indexes, by putting them together by scale, shape and orientation (columns 3,4,5)
             indices_by_attributes = {}
@@ -95,33 +83,34 @@ class Shapes3D(Dataset):
                     idx1, idx2 = random.sample(indices, 2)
                     if (idx1, idx2) not in pairs and idx1 != idx2: pairs.append((idx1, idx2))
         
-            np.save(join(self.cache_folder, self.mode + '_pairs.npy'), pairs)
+            np.save(join(self.cache_folder, 'pairs.npy'), pairs)
         else:
-            images = np.load(join(self.cache_folder, self.mode + '_images.npy'))
-            labels = np.load(join(self.cache_folder, self.mode + '_labels.npy'))
-            pairs = np.load(join(self.cache_folder, self.mode + '_pairs.npy'))
+            images = np.load(join(self.cache_folder, 'images.npy'))
+            labels = np.load(join(self.cache_folder, 'labels.npy'))
+            pairs = np.load(join(self.cache_folder, 'pairs.npy'))
         return images, labels, pairs
 
     def __len__(self):
         return 64
 
     def __getitem__(self, idx):
+        idx = np.random.randint(0, len(self.pairs))
         idx1, idx2 = self.pairs[idx]
         image1, image2 = self.images[idx1], self.images[idx2]
         label1 = self.labels[idx1]
         label2 = self.labels[idx2]
         return Shapes3DData(
-            x=torch.Tensor(image1).permute(2,0,1),
-            y=torch.Tensor(image2).permute(2,0,1),
-            x_floor_hue_label=torch.tensor(label1[0], dtype=torch.float32),
-            x_wall_hue_label=torch.tensor(label1[1], dtype=torch.float32),
-            x_object_hue_label=torch.tensor(label1[2], dtype=torch.float32),
-            y_floor_hue_label=torch.tensor(label2[0], dtype=torch.float32),
-            y_wall_hue_label=torch.tensor(label2[1], dtype=torch.float32),
-            y_object_hue_label=torch.tensor(label2[2], dtype=torch.float32),
-            scale_label=torch.tensor(label1[3], dtype=torch.float32),
-            shape_label=torch.tensor(label1[4], dtype=torch.float32),
-            orientation_label=torch.tensor(label1[5], dtype=torch.float32),
+            x=torch.as_tensor(image1,device='cuda',dtype=torch.float32).permute(2,0,1),
+            y=torch.as_tensor(image2,device='cuda',dtype=torch.float32).permute(2,0,1),
+            x_floor_hue_label=torch.as_tensor(label1[0],device='cuda'),
+            x_wall_hue_label=torch.as_tensor(label1[1],device='cuda'),
+            x_object_hue_label=torch.as_tensor(label1[2],device='cuda'),
+            y_floor_hue_label=torch.as_tensor(label2[0],device='cuda'),
+            y_wall_hue_label=torch.as_tensor(label2[1],device='cuda'),
+            y_object_hue_label=torch.as_tensor(label2[2],device='cuda'),
+            scale_label=torch.as_tensor(label1[3],device='cuda'),
+            shape_label=torch.as_tensor(label1[4],device='cuda'),
+            orientation_label=torch.as_tensor(label1[5],device='cuda'),
         )
 
     

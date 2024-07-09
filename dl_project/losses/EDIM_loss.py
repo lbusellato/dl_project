@@ -57,9 +57,13 @@ class EDIMLoss(nn.Module):
             T=edim_outputs.global_mutual_M_R_x,
             T_prime=edim_outputs.global_mutual_M_R_x_prime,
         )
+        global_mutual_loss_y = self.djs_loss(
+            T=edim_outputs.global_mutual_M_R_y,
+            T_prime=edim_outputs.global_mutual_M_R_y_prime,
+        )
 
         global_mutual_loss = (
-            global_mutual_loss_x
+            global_mutual_loss_x + global_mutual_loss_y
         ) * self.global_mutual_loss_coeff
 
         # Compute Local mutual loss
@@ -68,13 +72,18 @@ class EDIMLoss(nn.Module):
             T=edim_outputs.local_mutual_M_R_x,
             T_prime=edim_outputs.local_mutual_M_R_x_prime,
         )
+        local_mutual_loss_y = self.djs_loss(
+            T=edim_outputs.local_mutual_M_R_y,
+            T_prime=edim_outputs.local_mutual_M_R_y_prime,
+        )
         local_mutual_loss = (
-            local_mutual_loss_x
+            local_mutual_loss_x + local_mutual_loss_y
         ) * self.local_mutual_loss_coeff
 
         gan_loss_x_g = self.generator_loss(fake_logits=edim_outputs.fake_x)
+        gan_loss_y_g = self.generator_loss(fake_logits=edim_outputs.fake_y)
 
-        gan_loss_g = gan_loss_x_g  * self.disentangling_loss_coeff
+        gan_loss_g = (gan_loss_x_g + gan_loss_y_g) * self.disentangling_loss_coeff
 
         # Get classification error
 
@@ -103,8 +112,12 @@ class EDIMLoss(nn.Module):
             real_logits=discr_outputs.disentangling_information_x_prime,
             fake_logits=discr_outputs.disentangling_information_x,
         )
+        gan_loss_y_d = self.discriminator_loss(
+            real_logits=discr_outputs.disentangling_information_y_prime,
+            fake_logits=discr_outputs.disentangling_information_y,
+        )
 
-        gan_loss_d = gan_loss_x_d * self.disentangling_loss_coeff
+        gan_loss_d = (gan_loss_x_d + gan_loss_y_d) * self.disentangling_loss_coeff
 
         return DiscrLosses(gan_loss_d=gan_loss_d)
 
@@ -114,6 +127,9 @@ class EDIMLoss(nn.Module):
         x_floor_hue_labels: torch.Tensor,
         x_wall_hue_labels: torch.Tensor,
         x_object_hue_labels: torch.Tensor,
+        y_floor_hue_labels: torch.Tensor,
+        y_wall_hue_labels: torch.Tensor,
+        y_object_hue_labels: torch.Tensor,
         scale_labels: torch.Tensor,
         shape_labels: torch.Tensor,
         orientation_labels: torch.Tensor,
@@ -150,6 +166,25 @@ class EDIMLoss(nn.Module):
         x_orientation_classif_loss, x_orientation_accuracy = self.classif_loss(
             y_pred=classif_outputs.x_orientation_logits , target=orientation_labels
         )
+        
+        y_floor_hue_classif_loss, y_floor_hue_accuracy = self.classif_loss(
+            y_pred=classif_outputs.y_floor_hue_logits , target=y_floor_hue_labels
+        )
+        y_wall_hue_classif_loss, y_wall_hue_accuracy = self.classif_loss(
+            y_pred=classif_outputs.y_wall_hue_logits , target=y_wall_hue_labels
+        )
+        y_object_hue_classif_loss, y_object_hue_accuracy = self.classif_loss(
+            y_pred=classif_outputs.y_object_hue_logits , target=y_object_hue_labels
+        )
+        y_scale_classif_loss, y_scale_accuracy = self.classif_loss(
+            y_pred=classif_outputs.y_scale_logits , target=scale_labels
+        )
+        y_shape_classif_loss, y_shape_accuracy = self.classif_loss(
+            y_pred=classif_outputs.y_shape_logits , target=shape_labels
+        )
+        y_orientation_classif_loss, y_orientation_accuracy = self.classif_loss(
+            y_pred=classif_outputs.y_orientation_logits , target=orientation_labels
+        )
 
         classif_loss = (
             x_floor_hue_classif_loss
@@ -158,6 +193,12 @@ class EDIMLoss(nn.Module):
             + x_scale_classif_loss
             + x_shape_classif_loss
             + x_orientation_classif_loss
+            + y_floor_hue_classif_loss
+            + y_wall_hue_classif_loss
+            + y_object_hue_classif_loss
+            + y_scale_classif_loss
+            + y_shape_classif_loss
+            + y_orientation_classif_loss
         )
 
         return ClassifLosses(
@@ -174,4 +215,16 @@ class EDIMLoss(nn.Module):
             x_scale_accuracy=x_scale_accuracy,
             x_shape_accuracy=x_shape_accuracy,
             x_orientation_accuracy=x_orientation_accuracy,
+            y_floor_hue_classif_loss=y_floor_hue_classif_loss,
+            y_wall_hue_classif_loss=y_wall_hue_classif_loss,
+            y_object_hue_classif_loss=y_object_hue_classif_loss,
+            y_scale_classif_loss=y_scale_classif_loss,
+            y_shape_classif_loss=y_shape_classif_loss,
+            y_orientation_classif_loss=y_orientation_classif_loss,
+            y_floor_hue_accuracy=y_floor_hue_accuracy,
+            y_wall_hue_accuracy=y_wall_hue_accuracy,
+            y_object_hue_accuracy=y_object_hue_accuracy,
+            y_scale_accuracy=y_scale_accuracy,
+            y_shape_accuracy=y_shape_accuracy,
+            y_orientation_accuracy=y_orientation_accuracy,
         )

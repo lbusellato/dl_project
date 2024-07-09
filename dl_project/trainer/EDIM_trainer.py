@@ -1,13 +1,13 @@
 import torch
 import torch.optim as optim
 import torch.nn as nn
+from torch.cuda.amp import GradScaler
 from dl_project.models.EDIM import EDIM
 from dl_project.utils.custom_typing import (
     ClassifLosses,
     ClassifierOutputs,
     DiscrLosses,
     GenLosses,
-    GeneratorOutputs,
     DiscriminatorOutputs,
     EDIMOutputs,
 )
@@ -52,7 +52,7 @@ class EDIMTrainer:
         device: str,
     ):
 
-        self.train_dataloader = DataLoader(dataset_train, batch_size=batch_size, shuffle=True)
+        self.train_dataloader = DataLoader(dataset_train, batch_size=batch_size)
         self.model = model.to(device)
         self.loss = loss
         self.device = device
@@ -72,8 +72,12 @@ class EDIMTrainer:
             model.global_stat.parameters(), lr=learning_rate
         )
 
-        self.optimizer_discriminator = optim.Adam(
-            model.discriminator.parameters(), lr=learning_rate
+        self.optimizer_discriminator_x = optim.Adam(
+            model.discriminator_x.parameters(), lr=learning_rate
+        )
+
+        self.optimizer_discriminator_y = optim.Adam(
+            model.discriminator_y.parameters(), lr=learning_rate
         )
 
 
@@ -114,6 +118,7 @@ class EDIMTrainer:
             model.y_orientation_classifier.parameters(), lr=learning_rate
         )
 
+        self.scaler = GradScaler()
 
     def update_generator(self, edim_outputs: EDIMOutputs) -> GenLosses:
         """Compute the generator gradient and make an optimisation step
@@ -125,21 +130,22 @@ class EDIMTrainer:
 
             GenLosses: Generator losses
         """
-        self.optimizer_encoder.zero_grad()
+        self.optimizer_encoder.zero_grad(set_to_none=True)
 
-        self.optimizer_local_stat.zero_grad()
+        self.optimizer_local_stat.zero_grad(set_to_none=True)
 
-        self.optimizer_global_stat.zero_grad()
+        self.optimizer_global_stat.zero_grad(set_to_none=True)
 
         losses = self.loss.compute_generator_loss(
             edim_outputs=edim_outputs,
         )
-        losses.encoder_loss.backward()
-        self.optimizer_encoder.step()
+        #losses.encoder_loss.backward()
+        self.scaler.scale(losses.encoder_loss).backward()
+        self.scaler.step(self.optimizer_encoder)
 
-        self.optimizer_local_stat.step()
+        self.scaler.step(self.optimizer_local_stat)
 
-        self.optimizer_global_stat.step()
+        self.scaler.step(self.optimizer_global_stat)
         return losses
 
     def update_discriminator(
@@ -155,10 +161,13 @@ class EDIMTrainer:
         Returns:
             DiscrLosses: Discriminator losses
         """
-        self.optimizer_discriminator.zero_grad()
+        self.optimizer_discriminator_x.zero_grad(set_to_none=True)
+        self.optimizer_discriminator_y.zero_grad(set_to_none=True)
         losses = self.loss.compute_discriminator_loss(discr_outputs=discr_outputs)
-        losses.gan_loss_d.backward()
-        self.optimizer_discriminator.step()
+        #losses.gan_loss_d.backward()
+        self.scaler.scale(losses.gan_loss_d).backward()
+        self.scaler.step(self.optimizer_discriminator_x)
+        self.scaler.step(self.optimizer_discriminator_y)
 
         return losses
 
@@ -168,6 +177,9 @@ class EDIMTrainer:
         x_floor_hue_labels: torch.Tensor,
         x_wall_hue_labels: torch.Tensor,
         x_object_hue_labels: torch.Tensor,
+        y_floor_hue_labels: torch.Tensor,
+        y_wall_hue_labels: torch.Tensor,
+        y_object_hue_labels: torch.Tensor,
         scale_labels: torch.Tensor,
         shape_labels: torch.Tensor,
         orientation_labels: torch.Tensor,
@@ -189,40 +201,44 @@ class EDIMTrainer:
         Returns:
             ClassifLosses: Classifiers losses
         """
-        self.x_optimizer_floor_hue_classifier.zero_grad()
-        self.x_optimizer_wall_hue_classifier.zero_grad()
-        self.x_optimizer_object_hue_classifier.zero_grad()
-        self.y_optimizer_floor_hue_classifier.zero_grad()
-        self.y_optimizer_wall_hue_classifier.zero_grad()
-        self.y_optimizer_object_hue_classifier.zero_grad()
-        self.x_optimizer_scale_classifier.zero_grad()
-        self.x_optimizer_shape_classifier.zero_grad()
-        self.x_optimizer_orientation_classifier.zero_grad()
-        self.y_optimizer_scale_classifier.zero_grad()
-        self.y_optimizer_shape_classifier.zero_grad()
-        self.y_optimizer_orientation_classifier.zero_grad()
+        self.x_optimizer_floor_hue_classifier.zero_grad(set_to_none=True)
+        self.x_optimizer_wall_hue_classifier.zero_grad(set_to_none=True)
+        self.x_optimizer_object_hue_classifier.zero_grad(set_to_none=True)
+        self.y_optimizer_floor_hue_classifier.zero_grad(set_to_none=True)
+        self.y_optimizer_wall_hue_classifier.zero_grad(set_to_none=True)
+        self.y_optimizer_object_hue_classifier.zero_grad(set_to_none=True)
+        self.x_optimizer_scale_classifier.zero_grad(set_to_none=True)
+        self.x_optimizer_shape_classifier.zero_grad(set_to_none=True)
+        self.x_optimizer_orientation_classifier.zero_grad(set_to_none=True)
+        self.y_optimizer_scale_classifier.zero_grad(set_to_none=True)
+        self.y_optimizer_shape_classifier.zero_grad(set_to_none=True)
+        self.y_optimizer_orientation_classifier.zero_grad(set_to_none=True)
         losses = self.loss.compute_classif_loss(
             classif_outputs=classif_outputs,
             x_floor_hue_labels=x_floor_hue_labels,
             x_wall_hue_labels=x_wall_hue_labels,
             x_object_hue_labels=x_object_hue_labels,
+            y_floor_hue_labels=y_floor_hue_labels,
+            y_wall_hue_labels=y_wall_hue_labels,
+            y_object_hue_labels=y_object_hue_labels,
             scale_labels=scale_labels,
             shape_labels=shape_labels,
             orientation_labels=orientation_labels,
         )
-        losses.classif_loss.backward()
-        self.x_optimizer_floor_hue_classifier.step()
-        self.x_optimizer_wall_hue_classifier.step()
-        self.x_optimizer_object_hue_classifier.step()
-        self.y_optimizer_floor_hue_classifier.step()
-        self.y_optimizer_wall_hue_classifier.step()
-        self.y_optimizer_object_hue_classifier.step()
-        self.x_optimizer_scale_classifier.step()
-        self.x_optimizer_shape_classifier.step()
-        self.x_optimizer_orientation_classifier.step()
-        self.y_optimizer_scale_classifier.step()
-        self.y_optimizer_shape_classifier.step()
-        self.y_optimizer_orientation_classifier.step()
+        #losses.classif_loss.backward()
+        self.scaler.scale(losses.classif_loss).backward()
+        self.scaler.step(self.x_optimizer_floor_hue_classifier)
+        self.scaler.step(self.x_optimizer_wall_hue_classifier)
+        self.scaler.step(self.x_optimizer_object_hue_classifier)
+        self.scaler.step(self.y_optimizer_floor_hue_classifier)
+        self.scaler.step(self.y_optimizer_wall_hue_classifier)
+        self.scaler.step(self.y_optimizer_object_hue_classifier)
+        self.scaler.step(self.x_optimizer_scale_classifier)
+        self.scaler.step(self.x_optimizer_shape_classifier)
+        self.scaler.step(self.x_optimizer_orientation_classifier)
+        self.scaler.step(self.y_optimizer_scale_classifier)
+        self.scaler.step(self.y_optimizer_shape_classifier)
+        self.scaler.step(self.y_optimizer_orientation_classifier)
         return losses
 
     def train(self, epochs: int, xp_name: str = "test"):
@@ -240,49 +256,52 @@ class EDIMTrainer:
             mlflow.log_param("Global mutual weight", self.loss.global_mutual_loss_coeff)
             mlflow.log_param("Discriminator weight", self.loss.disentangling_loss_coeff)
             log_step = 0
-            for epoch in tqdm(range(epochs)):
-                for idx, train_batch in enumerate(self.train_dataloader):
-                    sample = train_batch
-                    edim_outputs = self.model.forward_generator(
-                        x=sample.x.to(self.device)
-                    )
-                    gen_losses = self.update_generator(edim_outputs=edim_outputs)
+            for _ in tqdm(range(epochs)):
+                sample = next(iter(self.train_dataloader))
+                edim_outputs = self.model.forward_generator(
+                    x=sample.x.to(self.device), y=sample.y.to(self.device)
+                )
+                gen_losses = self.update_generator(edim_outputs=edim_outputs)
 
-                    discr_outputs = self.model.forward_discriminator(
-                        edim_outputs=edim_outputs
-                    )
-                    discr_losses = self.update_discriminator(
-                        discr_outputs=discr_outputs
-                    )
+                discr_outputs = self.model.forward_discriminator(
+                    edim_outputs=edim_outputs
+                )
+                discr_losses = self.update_discriminator(
+                    discr_outputs=discr_outputs
+                )
 
-                    classif_outputs = self.model.forward_classifier(
-                        edim_outputs=edim_outputs
-                    )
-                    classif_losses = self.update_classifier(
-                        classif_outputs=classif_outputs,
-                        x_floor_hue_labels=sample.x_floor_hue_label.to(self.device),
-                        x_wall_hue_labels=sample.x_wall_hue_label.to(self.device),
-                        x_object_hue_labels=sample.x_object_hue_label.to(self.device),
-                        scale_labels=sample.scale_label.to(self.device),
-                        shape_labels=sample.shape_label.to(self.device),
-                        orientation_labels=sample.orientation_label.to(self.device),
-                    )
+                classif_outputs = self.model.forward_classifier(
+                    edim_outputs=edim_outputs
+                )
+                classif_losses = self.update_classifier(
+                    classif_outputs=classif_outputs,
+                    x_floor_hue_labels=sample.x_floor_hue_label.to(self.device),
+                    x_wall_hue_labels=sample.x_wall_hue_label.to(self.device),
+                    x_object_hue_labels=sample.x_object_hue_label.to(self.device),
+                    y_floor_hue_labels=sample.y_floor_hue_label.to(self.device),
+                    y_wall_hue_labels=sample.y_wall_hue_label.to(self.device),
+                    y_object_hue_labels=sample.y_object_hue_label.to(self.device),
+                    scale_labels=sample.scale_label.to(self.device),
+                    shape_labels=sample.shape_label.to(self.device),
+                    orientation_labels=sample.orientation_label.to(self.device),
+                )
 
-                    dict_gen_losses = gen_losses._asdict()
-                    mlflow.log_metrics(
-                        {k: v.item() for k, v in dict_gen_losses.items()}, step=log_step
-                    )
-                    dict_discr_losses = discr_losses._asdict()
-                    mlflow.log_metrics(
-                        {k: v.item() for k, v in dict_discr_losses.items()},
-                        step=log_step,
-                    )
-                    dict_classif_losses = classif_losses._asdict()
-                    mlflow.log_metrics(
-                        {k: v.item() for k, v in dict_classif_losses.items()},
-                        step=log_step,
-                    )
-                    log_step += 1
+                dict_gen_losses = gen_losses._asdict()
+                mlflow.log_metrics(
+                    {k: v.item() for k, v in dict_gen_losses.items()}, step=log_step
+                )
+                dict_discr_losses = discr_losses._asdict()
+                mlflow.log_metrics(
+                    {k: v.item() for k, v in dict_discr_losses.items()},
+                    step=log_step,
+                )
+                dict_classif_losses = classif_losses._asdict()
+                mlflow.log_metrics(
+                    {k: v.item() for k, v in dict_classif_losses.items()},
+                    step=log_step,
+                )
+                log_step += 1
+                self.scaler.update()
 
             encoder_x_path, encoder_y_path = "ex_encoder", "ex_encoder_y"
             mpy.log_state_dict(self.model.ex_enc.state_dict(), encoder_x_path)

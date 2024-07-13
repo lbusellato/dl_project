@@ -42,7 +42,6 @@ class SDIM(nn.Module):
             feature_map_channels=self.img_feature_channels,
             img_feature_channels=self.img_feature_channels + self.shared_dim,
             kernel_size=1,
-            latent_dim=self.shared_dim,
         )
 
         # Global statistics network

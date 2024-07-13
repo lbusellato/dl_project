@@ -29,11 +29,11 @@ loss = SDIMLoss(
     shared_loss_coeff=LOSS_PARAM["shared_loss_coeff"],
 )
 
-train_dataset = Shapes3D()
+batch_size = TRAINING_PARAM["batch_size"]
+train_dataset = Shapes3D(batch_size=batch_size)
 
 device = TRAINING_PARAM["device"]
 learning_rate = TRAINING_PARAM["learning_rate"]
-batch_size = TRAINING_PARAM["batch_size"]
 epochs = TRAINING_PARAM["epochs"]
 trainer = SDIMTrainer(
     dataset_train=train_dataset,

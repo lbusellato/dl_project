@@ -130,8 +130,8 @@ class EDIM(nn.Module):
         R_y_x = torch.cat([shared_y, exclusive_x], dim=1)
 
         # Global mutual information estimation
-        global_mutual_M_R_x = self.global_stat(M_x, R_x_y)
-        global_mutual_M_R_x_prime = self.global_stat(M_x_prime, R_x_y)
+        global_mutual_M_R_x = self.global_stat(M_x, R_y_x)
+        global_mutual_M_R_x_prime = self.global_stat(M_x_prime, R_y_x)
 
         global_mutual_M_R_y = self.global_stat(M_y, R_x_y)
         global_mutual_M_R_y_prime = self.global_stat(M_y_prime, R_x_y)

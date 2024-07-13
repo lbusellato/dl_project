@@ -38,15 +38,13 @@ trained_enc_y = BaseEncoder(
 )
 
 # Load the trained shared encoders
-trained_encoder_path = './mlruns/sdim/run1'
+trained_encoder_path = './mlruns/sdim/run2'
 trained_enc_x_path=join(trained_encoder_path, "artifacts/sh_encoder_x/state_dict.pth")
 trained_enc_y_path=join(trained_encoder_path, "artifacts/sh_encoder_y/state_dict.pth")
 trained_enc_x.load_state_dict(torch.load(trained_enc_x_path))
 trained_enc_y.load_state_dict(torch.load(trained_enc_y_path))
 freeze_grad_and_eval(trained_enc_x)
 freeze_grad_and_eval(trained_enc_y)
-
-train_dataset = Shapes3D()
 
 edim = EDIM(
     img_size=MODEL_PARAM["img_size"],
@@ -62,9 +60,11 @@ loss = EDIMLoss(
     disentangling_loss_coeff=LOSS_PARAM["disentangling_loss_coeff"],
 )
 
+batch_size = TRAINING_PARAM["batch_size"]
+train_dataset = Shapes3D(batch_size=batch_size)
+
 device = TRAINING_PARAM["device"]
 learning_rate = TRAINING_PARAM["learning_rate"]
-batch_size = TRAINING_PARAM["batch_size"]
 epochs = TRAINING_PARAM["epochs"]
 trainer = EDIMTrainer(
     dataset_train=train_dataset,

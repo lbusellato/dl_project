@@ -14,10 +14,12 @@ ROOT = dirname(dirname(dirname(abspath(__file__))))
 class Shapes3D(Dataset):
     
     def __init__(self,
-                 max_pairs = 40) -> None:
+                 max_pairs = 500,
+                 batch_size = 64) -> None:
         super().__init__()
         
         self.max_pairs = max_pairs
+        self.batch_size = batch_size
 
         # Create the folder for cache storage
         self.cache_folder = join(ROOT, 'cache')
@@ -79,9 +81,13 @@ class Shapes3D(Dataset):
                 if len(indices) < 2:
                     continue
                 # Create pairs within each group, limit the number of pairs to max_pairs_per_group
+                max_attempts = 10
                 for _ in range(self.max_pairs):
-                    idx1, idx2 = random.sample(indices, 2)
-                    if (idx1, idx2) not in pairs and idx1 != idx2: pairs.append((idx1, idx2))
+                    for _ in range(max_attempts):
+                        idx1, idx2 = random.sample(indices, 2)
+                        if (idx1, idx2) not in pairs and idx1 != idx2: 
+                            pairs.append((idx1, idx2))
+                            break
         
             np.save(join(self.cache_folder, 'pairs.npy'), pairs)
         else:
@@ -91,7 +97,7 @@ class Shapes3D(Dataset):
         return images, labels, pairs
 
     def __len__(self):
-        return 64
+        return self.batch_size
 
     def __getitem__(self, idx):
         idx = np.random.randint(0, len(self.pairs))

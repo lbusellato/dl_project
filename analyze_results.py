@@ -58,7 +58,7 @@ fig, ax = plt.subplots(2, 3, figsize=(16, 6))
 
 for idx, (title, moving_average) in enumerate(metrics.items()):
     grad = abs(np.gradient(moving_average))
-    means[title] = np.mean(moving_average[np.argwhere(grad < 1e-15)])
+    means[title] = np.mean(moving_average[-10000:])#np.argwhere(grad < 1e-15)])
     i, j = divmod(idx, 3)
     ax[i, j].plot(moving_average, label='$S_X$')
     ax[i, j].set_title(title)

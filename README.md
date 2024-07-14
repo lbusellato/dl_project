@@ -4,7 +4,7 @@ This repository contains the code for the final project for the Deep Learning co
 
 ## Setup
 
-The project was run on a commercial-grade laptop with an Intel i7-7500@2.70GHz CPU and an NVIDIA 940MX GPU with CUDA version 11.4. The project uses PyTorch v2.3.1+cu118.
+The project was run on a commercial-grade laptop with an Intel i7-7500<span>@</span>2.70GHz CPU and an NVIDIA 940MX GPU with CUDA version 11.4. The project uses PyTorch v2.3.1+cu118.
 
 The Shapes3D dataset is automatically downloaded and placed in a "cache" folder at the root of the repo. During training, a new dataset is created and saved in the cache folder.
 

@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/loren/Desktop/dl_project/mlruns/587556050967913779/e80c562b5a054e91bfcf7b9300da9650/artifacts
+end_time: 1720760935900
+entry_point_name: ''
+experiment_id: '587556050967913779'
+lifecycle_stage: active
+run_id: e80c562b5a054e91bfcf7b9300da9650
+run_name: receptive-cow-3
+run_uuid: e80c562b5a054e91bfcf7b9300da9650
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1720728364629
+status: 3
+tags: []
+user_id: loren

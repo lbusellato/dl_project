@@ -27,12 +27,12 @@ x_object_hue_accuracy = read_accuracy('./mlruns/SDIM/run' + run + '/metrics/x_ob
 window_size = 100  # You can adjust this value as needed
 
 # Compute moving averages
-shape_moving_average = compute_moving_average(shape_accuracy, window_size)
-scale_moving_average = compute_moving_average(scale_accuracy, window_size)
-orientation_moving_average = compute_moving_average(orientation_accuracy, window_size)
-x_floor_hue_moving_average = compute_moving_average(x_floor_hue_accuracy, window_size)
-x_wall_hue_moving_average = compute_moving_average(x_wall_hue_accuracy, window_size)
-x_object_hue_moving_average = compute_moving_average(x_object_hue_accuracy, window_size)
+shape_moving_average = compute_moving_average(shape_accuracy, window_size)[:30000]
+scale_moving_average = compute_moving_average(scale_accuracy, window_size)[:30000]
+orientation_moving_average = compute_moving_average(orientation_accuracy, window_size)[:30000]
+x_floor_hue_moving_average = compute_moving_average(x_floor_hue_accuracy, window_size)[:30000]
+x_wall_hue_moving_average = compute_moving_average(x_wall_hue_accuracy, window_size)[:30000]
+x_object_hue_moving_average = compute_moving_average(x_object_hue_accuracy, window_size)[:30000]
 
 # Find stable regions and means
 metrics = {
@@ -63,14 +63,13 @@ for idx, (title, moving_average) in enumerate(metrics.items()):
     ax[i, j].plot(moving_average, label='$S_X$')
     ax[i, j].set_title(title)
     ax[i, j].set_ylim(0, 1.1)
-    ax[i, j].grid()
     ax[i, j].legend()
     
 
 print(means)
 
 # Read accuracy data
-run = '7'
+run = '8'
 shape_accuracy = read_accuracy('./mlruns/EDIM/run' + run + '/metrics/x_shape_accuracy')
 scale_accuracy = read_accuracy('./mlruns/EDIM/run' + run + '/metrics/x_scale_accuracy')
 orientation_accuracy = read_accuracy('./mlruns/EDIM/run' + run + '/metrics/x_orientation_accuracy')
@@ -110,9 +109,9 @@ means = {
 
 for idx, (title, moving_average) in enumerate(metrics.items()):
     grad = abs(np.gradient(moving_average))
-    means[title] = np.mean(moving_average[np.argwhere(grad < 1e-12)])
+    means[title] = np.mean(moving_average[-10000:])#np.argwhere(grad < 1e-12)])
     i, j = divmod(idx, 3)
-    ax[i, j].plot(moving_average, label='$S_X$',color='red')
+    ax[i, j].plot(moving_average, label='$E_X$',color='red')
     ax[i, j].set_title(title)
     ax[i, j].set_ylim(0, 1.1)
     ax[i, j].grid()

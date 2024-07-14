@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/loren/Desktop/dl_project/mlruns/948026808094010203/e604eb5b2afd41b5ab29e4009847d067/artifacts
+end_time: 1720566484753
+entry_point_name: ''
+experiment_id: '948026808094010203'
+lifecycle_stage: active
+run_id: e604eb5b2afd41b5ab29e4009847d067
+run_name: abrasive-cow-467
+run_uuid: e604eb5b2afd41b5ab29e4009847d067
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1720546231408
+status: 3
+tags: []
+user_id: loren

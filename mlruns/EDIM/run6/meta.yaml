@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/loren/Desktop/dl_project/mlruns/160962513889002020/ac9cbbc3bd9c414faa82316e8965437e/artifacts
+end_time: 1720805536018
+entry_point_name: ''
+experiment_id: '160962513889002020'
+lifecycle_stage: active
+run_id: ac9cbbc3bd9c414faa82316e8965437e
+run_name: powerful-cub-968
+run_uuid: ac9cbbc3bd9c414faa82316e8965437e
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1720768310261
+status: 3
+tags: []
+user_id: loren

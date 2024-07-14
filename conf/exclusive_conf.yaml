@@ -2,9 +2,9 @@ training_stage: exclusive
 
 training_param:
   batch_size : 64
-  learning_rate : 0.001
+  learning_rate : 0.01
   device: cuda
-  epochs : 10000
+  epochs : 30000
 
 model_param:
   img_size : 64

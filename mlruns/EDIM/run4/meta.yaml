@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/loren/Desktop/dl_project/mlruns/587556050967913779/38828c2118c94d12a0397f35657ff95f/artifacts
+end_time: 1720763322606
+entry_point_name: ''
+experiment_id: '587556050967913779'
+lifecycle_stage: active
+run_id: 38828c2118c94d12a0397f35657ff95f
+run_name: unleashed-shark-207
+run_uuid: 38828c2118c94d12a0397f35657ff95f
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1720728488414
+status: 3
+tags: []
+user_id: loren

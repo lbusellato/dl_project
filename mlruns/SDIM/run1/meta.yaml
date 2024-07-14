@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/loren/Desktop/dl_project/mlruns/905253739199364001/121c4b2f1081474faa8f436e09736798/artifacts
+end_time: 1720478686234
+entry_point_name: ''
+experiment_id: '905253739199364001'
+lifecycle_stage: active
+run_id: 121c4b2f1081474faa8f436e09736798
+run_name: efficient-slug-946
+run_uuid: 121c4b2f1081474faa8f436e09736798
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1720439124678
+status: 3
+tags: []
+user_id: loren

@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/loren/Desktop/dl_project/mlruns/160962513889002020/252bf68f61a44b2ab12e923349bd257d/artifacts
+end_time: 1720804817098
+entry_point_name: ''
+experiment_id: '160962513889002020'
+lifecycle_stage: active
+run_id: 252bf68f61a44b2ab12e923349bd257d
+run_name: classy-tern-202
+run_uuid: 252bf68f61a44b2ab12e923349bd257d
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1720767878862
+status: 3
+tags: []
+user_id: loren

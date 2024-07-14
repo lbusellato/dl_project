@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/loren/Desktop/dl_project/mlruns/924202610882193588/13ddd8e58c6a45099a7aae9d85d82fc7/artifacts
+end_time: 1720891975383
+entry_point_name: ''
+experiment_id: '924202610882193588'
+lifecycle_stage: active
+run_id: 13ddd8e58c6a45099a7aae9d85d82fc7
+run_name: calm-penguin-840
+run_uuid: 13ddd8e58c6a45099a7aae9d85d82fc7
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1720831372280
+status: 3
+tags: []
+user_id: loren
